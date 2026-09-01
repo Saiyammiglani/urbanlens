@@ -1,0 +1,5 @@
+path: C:/Users/saiyam miglani/OneDrive/Desktop/Glm 5.3/ml/dataset
+train: images/train
+val: images/val
+nc: 3
+names: [pothole, crack, garbage_dump]

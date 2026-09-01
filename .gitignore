@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+.env
+*.sqlite3
+*.onnx
+node_modules/
+dist/
+.venv/
+venv/
+edge/media/
+*.pt
+
+# training data & run artifacts (multi-GB, not for git)
+ml/datasets/
+ml/dataset/
+ml/dataset_v2/
+ml/runs/
+
+# dashboard test artifacts (installed with --no-save, not in package.json)
+dashboard/*.cjs
+dashboard/ui_debug.cjs
+
+# local noise
+*.log
+/tmp/
+ml/dataset_v2.yaml.local
+spool.jsonl

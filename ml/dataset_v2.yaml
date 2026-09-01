@@ -1,0 +1,6 @@
+path: C:/Users/saiyam miglani/OneDrive/Desktop/Glm 5.3/ml/dataset_v2
+train: images/train
+val: images/val
+
+nc: 9
+names: ['pothole', 'crack', 'garbage_dump', 'waterlogging', 'open_manhole', 'broken_streetlight', 'roadside_debris', 'faded_signage', 'illegal_parking']

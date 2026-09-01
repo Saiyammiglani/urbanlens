@@ -1,0 +1,9 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.0
+psycopg[binary]==3.2.3
+paho-mqtt==2.1.0
+python-dotenv==1.0.1
+requests==2.32.3
