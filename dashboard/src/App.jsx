@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from "react-leaflet";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Marker, ZoomControl, useMap } from "react-leaflet";
+import L from "leaflet";
 import { fetchIncidents, fetchStats, fetchZones, transition } from "./lib/api.js";
 import {
   LABEL_META,
@@ -21,14 +22,38 @@ const CITIES = {
   Bengaluru: [12.9550, 77.6150],
 };
 
-/** Recenter the map when the selected city changes. */
-function CityView({ center }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 13);
-  }, [center[0], center[1]]); // eslint-disable-line react-hooks/exhaustive-deps
-  return null;
-}
+/* ---------- view rail definition (real views only) ---------- */
+
+const VIEWS = [
+  { id: "overview", label: "Live Map" },
+  { id: "incidents", label: "Incidents" },
+  { id: "analytics", label: "Analytics" },
+];
+
+const RAIL_ICONS = {
+  overview: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" />
+    </svg>
+  ),
+  incidents: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 6h13M8 12h13M8 18h13" />
+      <circle cx="3.5" cy="6" r="1" fill="currentColor" />
+      <circle cx="3.5" cy="12" r="1" fill="currentColor" />
+      <circle cx="3.5" cy="18" r="1" fill="currentColor" />
+    </svg>
+  ),
+  analytics: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18" />
+      <path d="M7 15l4-5 3 3 5-7" />
+    </svg>
+  ),
+};
+
+/* ---------- small helpers ---------- */
 
 /** Expose map instance for tests/debug (window.__map). */
 function MapRef() {
@@ -36,6 +61,54 @@ function MapRef() {
   useEffect(() => { window.__map = map; }, [map]);
   return null;
 }
+
+/** Recenter map when city changes. */
+function CityView({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.setView(center, 13);
+  }, [center?.[0], center?.[1]]);
+  return null;
+}
+
+/** Pulsing ripple marker for freshly-arrived incidents. */
+function pingIcon(color) {
+  return L.divIcon({
+    className: "ping-wrapper",
+    html: `<span class="ping-ring" style="--ping:${color}"></span>`,
+    iconSize: [0, 0],
+  });
+}
+
+/** Live clock in the header. */
+function Clock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="topbar-clock">
+      {now.toLocaleTimeString("en-IN", { hour12: false })}
+    </span>
+  );
+}
+
+/** "Updated Xs ago" from the real last successful sync. */
+function UpdatedAgo({ lastSync }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (!lastSync) return null;
+  const s = Math.max(0, Math.round((Date.now() - lastSync) / 1000));
+  return <span className="updated-ago">updated {s}s ago</span>;
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
 
 export default function App() {
   const [incidents, setIncidents] = useState([]);
@@ -48,6 +121,13 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [routeMode, setRouteMode] = useState(false);
   const [city, setCity] = useState("Delhi");
+  const [hovered, setHovered] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [view, setView] = useState("overview");
+  const [lastSync, setLastSync] = useState(null);
+  const prevIds = useRef(new Set());
+  const [pingIds, setPingIds] = useState(new Set());
+  const firstLoad = useRef(true);
 
   const refresh = async () => {
     try {
@@ -64,9 +144,20 @@ export default function App() {
       setStats(st);
       setZones(zs);
       setError(null);
+      setLastSync(Date.now());
     } catch (e) {
       setError(e.message);
+    } finally {
+      if (firstLoad.current) firstLoad.current = false;
     }
+  };
+
+  const loading = firstLoad.current && !stats && !error;
+
+  const showToast = (message, tone = "error") => {
+    setToast({ message, tone });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast(null), 3500);
   };
 
   useEffect(() => {
@@ -83,6 +174,24 @@ export default function App() {
     }
   }, [incidents]);
 
+  // detect brand-new incidents → ripple ping on the map for 8 s
+  useEffect(() => {
+    const ids = new Set(incidents.map((i) => i.id));
+    const fresh = [...ids].filter((id) => !prevIds.current.has(id));
+    prevIds.current = ids;
+    if (fresh.length && prevIds.current.size > fresh.length) { // skip initial load
+      setPingIds((p) => new Set([...p, ...fresh]));
+      const t = setTimeout(() => {
+        setPingIds((p) => {
+          const n = new Set(p);
+          fresh.forEach((f) => n.delete(f));
+          return n;
+        });
+      }, 8000);
+      return () => clearTimeout(t);
+    }
+  }, [incidents]);
+
   const labels = useMemo(
     () =>
       [...new Set([...Object.keys(LABEL_META), ...incidents.map((i) => i.label)])].sort(),
@@ -94,184 +203,344 @@ export default function App() {
       await transition(incident.id, status, "control-room", "");
       refresh();
     } catch (e) {
-      alert(e.message);
+      showToast(`Couldn't update incident: ${e.message}`);
     }
   };
 
+  /* ---------- shared map layers ---------- */
+
+  const mapLayers = (
+    <>
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors &copy; Esri, HERE, Garmin'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+      />
+      <TileLayer
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+      />
+      <ZoomControl position="bottomright" />
+      {incidents.map((inc) => {
+        const c = labelColor(inc.label);
+        const closed = inc.status === "resolved" || inc.status === "rejected";
+        const hot = hovered === inc.id || selected?.id === inc.id;
+        return (
+          <CircleMarker
+            key={inc.id}
+            center={[inc.lat, inc.lon]}
+            radius={severityRadius(inc.severity) + (hot ? 2 : 0)}
+            pathOptions={{
+              interactive: !routeMode,
+              color: c,
+              weight: hot ? 4 : closed ? 1.5 : 2.5,
+              fillColor: inc.status === "rejected" ? "#0b0c0f" : c,
+              fillOpacity: inc.status === "resolved" ? 0.15 : inc.status === "rejected" ? 0.05 : hot ? 0.85 : 0.6,
+              dashArray: closed ? "4 3" : null,
+            }}
+            eventHandlers={{ click: () => setSelected(inc) }}
+          >
+            <Tooltip>
+              <b style={{ color: c }}>{prettyLabel(inc.label)}</b> · sev {inc.severity} · {prettyLabel(inc.status)}
+            </Tooltip>
+            <Popup>
+              <b style={{ color: c }}>{labelIcon(inc.label)} {prettyLabel(inc.label)}</b>
+              <br />severity {inc.severity}/10 · confidence {(inc.confidence * 100).toFixed(0)}%
+              <br />status: {prettyLabel(inc.status)}
+              <br />seen {inc.observation_count}× · {inc.assigned_dept || "unassigned"}
+              {inc.image_b64 && (
+                <>
+                  <br />
+                  <img src={`data:image/jpeg;base64,${inc.image_b64}`} width="200" style={{ borderRadius: 6, marginTop: 6 }} alt="evidence" />
+                </>
+              )}
+            </Popup>
+          </CircleMarker>
+        );
+      })}
+      {/* ripple pings for new detections */}
+      {incidents
+        .filter((inc) => pingIds.has(inc.id))
+        .map((inc) => (
+          <Marker
+            key={`ping-${inc.id}`}
+            position={[inc.lat, inc.lon]}
+            icon={pingIcon(labelColor(inc.label))}
+            interactive={false}
+          />
+        ))}
+      <CityView center={CITIES[city]} />
+      <MapRef />
+      <SmartRoute zones={zones} active={routeMode} onActiveChange={setRouteMode} />
+    </>
+  );
+
+  /* ---------- filter toolbar (floating on map) ---------- */
+
+  const toolbar = (
+    <div className="toolbar">
+      <select className="select" value={city} onChange={(e) => setCity(e.target.value)} title="Switch city view">
+        {Object.keys(CITIES).map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
+      <select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} title="Filter by status">
+        <option value="">All statuses</option>
+        {STATUSES.map((s) => (
+          <option key={s} value={s}>{prettyLabel(s)}</option>
+        ))}
+      </select>
+      <select className="select" value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} title="Filter by issue type">
+        <option value="">All issue types</option>
+        {labels.map((l) => (
+          <option key={l} value={l}>{prettyLabel(l)}</option>
+        ))}
+      </select>
+      <select className="select" value={minSeverity} onChange={(e) => setMinSeverity(Number(e.target.value))} title="Filter by severity">
+        <option value={1}>Any severity</option>
+        <option value={4}>Severity ≥ 4</option>
+        <option value={6}>Severity ≥ 6</option>
+        <option value={8}>Critical only (≥ 8)</option>
+      </select>
+      <span className="result-count" aria-live="polite">
+        {incidents.length} shown
+      </span>
+    </div>
+  );
+
+  /* ---------- legend (floating, bottom-left) ---------- */
+
+  const legend = (
+    <div className="legend">
+      <div className="legend-title">Issue Types</div>
+      {labels.map((l) => (
+        <div key={l} className="legend-row">
+          <span className="legend-dot" style={{ background: labelColor(l) }} />
+          {prettyLabel(l)}
+        </div>
+      ))}
+      <div className="legend-divider" />
+      <div className="legend-title">Status</div>
+      <div className="legend-row"><span className="legend-dot" style={{ background: "#475569" }} /> Open / active</div>
+      <div className="legend-row"><span className="legend-dot" style={{ background: "transparent", border: "1.5px dashed #64748b" }} /> Resolved</div>
+      <div className="legend-row"><span className="legend-dot" style={{ background: "transparent", border: "1.5px solid #64748b" }} /> Rejected</div>
+      <div className="legend-divider" />
+      <div className="legend-title">Dot Size</div>
+      <div className="legend-row">Larger = higher severity</div>
+    </div>
+  );
+
+  /* ---------- analytics view (derived from existing data only) ---------- */
+
+  const analytics = stats ? (
+    <div className="analytics-grid">
+      <div className="an-card">
+        <div className="an-card-title">Status Pipeline</div>
+        {STATUSES.map((s) => {
+          const n = incidents.filter((i) => i.status === s).length;
+          const max = Math.max(1, ...STATUSES.map((st) => incidents.filter((i) => i.status === st).length));
+          const colors = { new: "#22d3ee", confirmed: "#60a5fa", assigned: "#a855f7", in_progress: "#fbbf24", resolved: "#34d399", rejected: "#6b7280" };
+          return (
+            <div className="an-row" key={s}>
+              <span className="an-name">{prettyLabel(s)}</span>
+              <div className="an-track"><div className="an-fill" style={{ width: `${(n / max) * 100}%`, background: colors[s] }} /></div>
+              <span className="an-count">{n}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="an-card">
+        <div className="an-card-title">Issue Mix</div>
+        {Object.entries(stats.by_label).sort((a, b) => b[1] - a[1]).map(([l, n]) => (
+          <div className="an-row" key={l}>
+            <span className="an-name">{labelIcon(l)} {prettyLabel(l)}</span>
+            <div className="an-track"><div className="an-fill" style={{ width: `${(n / Math.max(...Object.values(stats.by_label))) * 100}%`, background: labelColor(l) }} /></div>
+            <span className="an-count">{n}</span>
+          </div>
+        ))}
+      </div>
+      <div className="an-card">
+        <div className="an-card-title">Recent Detections</div>
+        <div className="an-list">
+          {[...incidents]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 6)
+            .map((i) => (
+              <div className="an-item" key={i.id}>
+                <span className="legend-dot" style={{ background: labelColor(i.label) }} />
+                <b style={{ fontSize: 12.5 }}>{prettyLabel(i.label)}</b>
+                <span className="meta-item">sev {i.severity}/10</span>
+                <span className="meta-item">{Math.round(i.confidence * 100)}%</span>
+                <span className="meta-item">{i.assigned_dept || "unassigned"}</span>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+
   return (
     <div className="app">
-      {/* ===== Header ===== */}
+      {/* ===== Top navigation ===== */}
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">🚌</div>
+          <div className="brand-mark">U</div>
           <div>
             <div className="brand-name">UrbanLens</div>
-            <div className="brand-sub">Mobile Urban Intelligence · BEL · SIH26124</div>
+            <div className="brand-sub">Mobile Urban Intelligence · BEL</div>
+          </div>
+        </div>
+
+        <div className="topbar-center">
+          <div className={`live-indicator ${error ? "offline" : ""}`}>
+            <span className="live-dot" />
+            {error ? "Backend Offline" : "Live"}
+            {!error && lastSync && (
+              <>
+                <span aria-hidden="true">·</span>
+                <UpdatedAgo lastSync={lastSync} />
+              </>
+            )}
           </div>
         </div>
 
         <div className="topbar-right">
-          <div className={`live-indicator ${error ? "offline" : ""}`}>
-            <span className="live-dot" />
-            {error ? "Backend Offline" : "Live · auto-refresh 4s"}
-          </div>
-          {stats && (
-            <div className="topbar-right" style={{ gap: 14 }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.1 }}>{stats.total}</div>
-                <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Incidents
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.1, color: "#f59e0b" }}>{stats.open}</div>
-                <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Open
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.1, color: "#22c55e" }}>{stats.resolved}</div>
-                <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Resolved
-                </div>
-              </div>
-            </div>
-          )}
+          <Clock />
         </div>
       </header>
 
-      {/* ===== KPI strip ===== */}
-      <StatsBar stats={stats} />
-
-      {/* ===== Toolbar ===== */}
-      <div className="toolbar">
-        <select className="select" value={city} onChange={(e) => setCity(e.target.value)} title="Switch city view">
-          {Object.keys(CITIES).map((c) => (
-            <option key={c} value={c}>{c}</option>
+      {/* ===== Body: rail + main ===== */}
+      <div className="app-body">
+        <nav className="rail" aria-label="Views">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              className={`rail-btn ${view === v.id ? "active" : ""}`}
+              onClick={() => setView(v.id)}
+              aria-label={v.label}
+              aria-pressed={view === v.id}
+            >
+              {RAIL_ICONS[v.id]}
+              <span className="rail-tip">{v.label}</span>
+            </button>
           ))}
-        </select>
-        <span className="toolbar-label">Filters</span>
-        <select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">All statuses</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{prettyLabel(s)}</option>
-          ))}
-        </select>
-        <select className="select" value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)}>
-          <option value="">All issue types</option>
-          {labels.map((l) => (
-            <option key={l} value={l}>{prettyLabel(l)}</option>
-          ))}
-        </select>
-        <select className="select" value={minSeverity} onChange={(e) => setMinSeverity(Number(e.target.value))}>
-          <option value={1}>Any severity</option>
-          <option value={4}>Severity ≥ 4</option>
-          <option value={6}>Severity ≥ 6</option>
-          <option value={8}>Critical only (≥ 8)</option>
-        </select>
+          <div className="rail-spacer" />
+        </nav>
 
-        <div className="toolbar-spacer" />
-        <span className="result-count">
-          {incidents.length} shown{labelFilter ? ` · ${prettyLabel(labelFilter)}` : ""}
-        </span>
-        <button className="btn" onClick={refresh}>⟳ Refresh</button>
-      </div>
-
-      {/* ===== Main ===== */}
-      <main className="layout">
-        <div className="map-pane">
-          <MapContainer center={[28.6139, 77.209]} zoom={12} scrollWheelZoom>
-            <TileLayer
-              attribution='&copy; OpenStreetMap contributors &copy; Esri, HERE, Garmin'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            />
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-            />
-            {incidents.map((inc) => {
-              const c = labelColor(inc.label);
-              const closed = inc.status === "resolved" || inc.status === "rejected";
-              return (
-                <CircleMarker
-                  key={inc.id}
-                  center={[inc.lat, inc.lon]}
-                  radius={severityRadius(inc.severity)}
-                  pathOptions={{
-                    interactive: !routeMode, // click-through while planning a route
-                    color: c,
-                    weight: closed ? 1.5 : 2.5,
-                    fillColor: inc.status === "rejected" ? "#0b1120" : c,
-                    fillOpacity: inc.status === "resolved" ? 0.15 : inc.status === "rejected" ? 0.05 : 0.6,
-                    dashArray: closed ? "4 3" : null,
-                  }}
-                  eventHandlers={{ click: () => setSelected(inc) }}
-                >
-                  <Tooltip>
-                    <b style={{ color: c }}>{prettyLabel(inc.label)}</b> · sev {inc.severity} · {prettyLabel(inc.status)}
-                  </Tooltip>
-                  <Popup>
-                    <b style={{ color: c }}>{labelIcon(inc.label)} {prettyLabel(inc.label)}</b>
-                    <br />severity {inc.severity}/10 · confidence {(inc.confidence * 100).toFixed(0)}%
-                    <br />status: {prettyLabel(inc.status)}
-                    <br />seen {inc.observation_count}× · {inc.assigned_dept || "unassigned"}
-                    {inc.image_b64 && (
-                      <>
-                        <br />
-                        <img src={`data:image/jpeg;base64,${inc.image_b64}`} width="200" style={{ borderRadius: 6, marginTop: 6 }} alt="evidence" />
-                      </>
-                    )}
-                  </Popup>
-                </CircleMarker>
-              );
-            })}
-            <CityView center={CITIES[city]} />
-            <MapRef />
-            <SmartRoute zones={zones} active={routeMode} onActiveChange={setRouteMode} />
-          </MapContainer>
-
-          {incidents.length === 0 && !error && (
-            <div className="map-empty">
-              <div className="map-empty-card">
-                <div className="icon">🛰️</div>
-                Waiting for fleet detections…
+        <div className={`main ${view === "overview" ? "fixed-view" : "scrollable-view"}`}>
+          {/* ===== Page header ===== */}
+          <div className="pagehead">
+            <div>
+              <h1 className="pagehead-title">
+                {view === "overview" ? "Urban Intelligence" : view === "incidents" ? "Incident Queue" : "Analytics"}
+              </h1>
+              <div className="pagehead-sub">
+                {view === "overview" && (
+                  <>AI-powered city monitoring · <b>{city}</b> · {incidents.length} incidents on map</>
+                )}
+                {view === "incidents" && <>Full queue · {incidents.length} shown · sorted by severity</>}
+                {view === "analytics" && <>Live breakdown of the current filter set</>}
               </div>
+            </div>
+            <div className="pagehead-actions">
+              <button className="btn" onClick={refresh}>⟳ Refresh</button>
+            </div>
+          </div>
+
+          {/* ===== Metric band ===== */}
+          <StatsBar stats={stats} />
+
+          {/* ===== Error banner ===== */}
+          {error && (
+            <div className="error-banner" role="alert">
+              <span className="error-banner-icon">⚠</span>
+              <div className="error-banner-body">
+                <b>Can't reach the UrbanLens backend</b>
+                <span>Live fleet updates are paused. Retrying automatically every 4 s.</span>
+              </div>
+              <button className="btn" onClick={refresh}>Retry now</button>
             </div>
           )}
 
-          {/* Legend */}
-          <div className="legend">
-            <div className="legend-title">Issue Types</div>
-            {labels.map((l) => (
-              <div key={l} className="legend-row">
-                <span className="legend-dot" style={{ background: labelColor(l) }} />
-                {prettyLabel(l)}
+          {/* ===== VIEWS ===== */}
+
+          {view === "overview" && (
+            <div className="workspace">
+              {/* Map card */}
+              <div className="map-card">
+                <div className="map-head">
+                  <div className="map-head-left">
+                    <span className="map-head-title">
+                      Live Monitoring · <span className="map-head-city">{city}</span>
+                    </span>
+                  </div>
+                  <span className="map-head-dotcount">
+                    ● {incidents.length} detections on map
+                  </span>
+                </div>
+                <div className="map-body">
+                  <MapContainer center={[28.6139, 77.209]} zoom={12} scrollWheelZoom zoomControl={false}>
+                    {mapLayers}
+                  </MapContainer>
+
+                  {toolbar}
+                  {legend}
+
+                  {incidents.length === 0 && !error && !loading && (
+                    <div className="map-empty">
+                      <div className="map-empty-card">
+                        <div className="icon">🛰️</div>
+                        Waiting for fleet detections…
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detail drawer */}
+                  <IncidentDetail
+                    incident={selected}
+                    onClose={() => setSelected(null)}
+                    onAct={act}
+                  />
+                </div>
               </div>
-            ))}
-            <div className="legend-divider" />
-            <div className="legend-title">Status</div>
-            <div className="legend-row"><span className="legend-dot" style={{ background: "#475569" }} /> Open / active</div>
-            <div className="legend-row"><span className="legend-dot" style={{ background: "transparent", border: "1.5px dashed #64748b" }} /> Resolved</div>
-            <div className="legend-row"><span className="legend-dot" style={{ background: "transparent", border: "1.5px solid #64748b" }} /> Rejected</div>
-            <div className="legend-divider" />
-            <div className="legend-title">Dot Size</div>
-            <div className="legend-row">Larger = higher severity</div>
-          </div>
 
-          {/* Detail drawer */}
-          <IncidentDetail
-            incident={selected}
-            onClose={() => setSelected(null)}
-            onAct={act}
-          />
+              {/* Incident panel */}
+              <IncidentFeed
+                incidents={incidents}
+                loading={loading}
+                selected={selected}
+                onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
+                onAct={act}
+                onHover={setHovered}
+              />
+            </div>
+          )}
+
+          {view === "incidents" && (
+            <IncidentFeed
+              incidents={incidents}
+              loading={loading}
+              selected={selected}
+              onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
+              onAct={act}
+              onHover={setHovered}
+              variant="full"
+            />
+          )}
+
+          {view === "analytics" && analytics}
         </div>
+      </div>
 
-        <IncidentFeed
-          incidents={incidents}
-          selected={selected}
-          onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
-          onAct={act}
-        />
-      </main>
+      {/* ===== Toast ===== */}
+      {toast && (
+        <div className={`toast toast-${toast.tone}`} role="status">
+          <span>{toast.tone === "error" ? "⚠ " : "✓ "}{toast.message}</span>
+          <button className="toast-close" onClick={() => setToast(null)} aria-label="Dismiss">✕</button>
+        </div>
+      )}
     </div>
   );
 }

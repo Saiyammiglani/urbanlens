@@ -191,7 +191,7 @@ export default function SmartRoute({ zones, active, onActiveChange }) {
             {cleanRoute && (
               <>
                 {" | "}
-                <span style={{ color: "#22c55e" }}>
+                <span className="smartroute-clean">
                   Cleaner: {cleanRoute.distance_km} km · {cleanRoute.duration_min} min
                   {cleanRoute.remaining === 0 ? " · avoids ALL zones" : ` · avoids ${cleanRoute.avoided} zone(s), ${cleanRoute.remaining} remain`}
                 </span>
@@ -202,9 +202,9 @@ export default function SmartRoute({ zones, active, onActiveChange }) {
         {impacts.slice(0, 4).map((z, i) => (
           <div key={i} className="smartroute-zone">
             <span className="legend-dot" style={{ background: labelColor(Object.keys(z.labels)[0]) }} />
-            <div style={{ flex: 1 }}>
+            <div className="smartroute-zone-body">
               <b>{z.advisory}</b>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>
+              <div className="smartroute-zone-meta">
                 {Object.entries(z.labels).map(([l, n]) => `${labelIcon(l)} ${prettyLabel(l)}×${n}`).join(" · ")} · sev {z.max_severity}/10 · {z.distance_m}m off route
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function SmartRoute({ zones, active, onActiveChange }) {
         ))}
         {impacts.length > 4 && <div className="smartroute-meta">+{impacts.length - 4} more zones…</div>}
         {status.startsWith("Finding") && <div className="smartroute-meta">{status}</div>}
-        <button className="btn" style={{ marginTop: 8 }} onClick={reset}>↺ Reset points</button>
+        <button className="btn smartroute-reset" onClick={reset}>↺ Reset points</button>
         <div className="smartroute-hint">Powered by live fleet detections · zones auto-update as buses report</div>
       </div>
 
