@@ -25,3 +25,6 @@ dashboard/ui_debug.cjs
 /tmp/
 ml/dataset_v2.yaml.local
 spool.jsonl
+
+# local-only docs
+docs/pitch.md
