@@ -1,6 +1,8 @@
-"""Detector: ONNX inference when a model exists, deterministic mock otherwise.
+"""Detector: ONNX inference (YOLOv8 exported). Requires a real trained model —
+no mock/synthetic detections. The edge agent refuses to run without weights,
+so nothing shown on the dashboard is ever fabricated.
 
-Contract (same for both backends):
+Contract:
     detect(frame_bgr) -> list[Detection(label, confidence, bbox=(x1,y1,x2,y2))]
 """
 from dataclasses import dataclass
@@ -20,31 +22,6 @@ class Detection:
     label: str
     confidence: float
     bbox: tuple  # x1, y1, x2, y2 in pixels
-
-
-class MockDetector:
-    """Deterministic pseudo-detections keyed off frame stats — lets the entire
-    pipeline run end-to-end before any model is trained."""
-
-    def __init__(self, seed: int = 42):
-        self._rng = np.random.default_rng(seed)
-        self._counter = 0
-
-    def detect(self, frame: np.ndarray) -> list[Detection]:
-        self._counter += 1
-        h, w = frame.shape[:2]
-        # emit a plausible detection roughly every 3rd frame
-        if self._counter % 3 != 0:
-            return []
-        label = LABELS[int(self._rng.integers(0, len(LABELS)))]
-        conf = float(self._rng.uniform(0.5, 0.95))
-        cx, cy = self._rng.uniform(0.2, 0.8, 2)
-        bw, bh = self._rng.uniform(0.08, 0.25, 2)
-        bbox = (
-            int((cx - bw / 2) * w), int((cy - bh / 2) * h),
-            int((cx + bw / 2) * w), int((cy + bh / 2) * h),
-        )
-        return [Detection(label, conf, bbox)]
 
 
 class OnnxDetector:
@@ -136,9 +113,13 @@ class OnnxDetector:
         return dets
 
 
-def load_detector(model_path: str | None, conf_thres: float = 0.45) -> OnnxDetector | MockDetector:
+def load_detector(model_path: str | None, conf_thres: float = 0.45) -> OnnxDetector:
+    """Load the real ONNX model. No model → hard error (never fake detections)."""
     if model_path and Path(model_path).exists():
         print(f"[detector] loading ONNX model: {model_path}")
         return OnnxDetector(model_path, conf_thres)
-    print("[detector] no ONNX model found — using MockDetector (pipeline demo mode)")
-    return MockDetector()
+    raise FileNotFoundError(
+        "no ONNX model found — refusing to run with fake detections. "
+        "Train the model (ml/train_v2.py) and export it (ml/export_onnx.py), "
+        f"or set EDGE_MODEL_PATH. Looked for: {model_path or '(EDGE_MODEL_PATH unset)'}"
+    )

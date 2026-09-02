@@ -8,10 +8,9 @@ and pushes lightweight incident metadata to a cloud backend where a dashboard,
 dedup engine, severity scoring, and departmental workflow turn raw detections into
 actionable urban intelligence.
 
-> **No training required to run this pipeline.** The edge agent loads an exported
-> ONNX model if available, and otherwise falls back to a deterministic mock
-> detector so the full end-to-end flow (bus → MQTT/HTTPS → backend → dashboard)
-> can be demonstrated immediately.
+> **Real model required.** The edge agent runs only the exported ONNX model
+> (YOLOv8) — it refuses to start without weights, so every detection on the
+> dashboard comes from real inference, never synthetic data.
 
 ---
 
@@ -23,7 +22,7 @@ actionable urban intelligence.
 │   ├── main.py           # Edge agent entrypoint
 │   ├── camera.py         # Camera / recorded-video source abstraction
 │   ├── gps.py            # GPS reader (serial NMEA) + route replay
-│   ├── detector.py       # ONNX inference w/ mock fallback
+│   ├── detector.py       # ONNX inference (real model, no fallback)
 │   ├── privacy.py        # On-device anonymization (blur)
 │   ├── buffer.py         # Offline store-and-forward queue
 │   ├── uploader.py       # MQTT / HTTPS publisher with retry
@@ -85,7 +84,7 @@ bash scripts/demo.sh
 
 ```
 Camera ─► [Edge Agent: detect → blur PII → geo-tag] ─► local buffer
-              │ (ONNX YOLO-class model or mock)
+              │ (ONNX YOLOv8 model — required, no fallback)
               ▼
       MQTT (Mosquitto) or HTTPS POST /api/v1/ingest
               ▼
@@ -102,10 +101,9 @@ Camera ─► [Edge Agent: detect → blur PII → geo-tag] ─► local buffer
 
 ## ML Pipeline (scaffolded, not executed)
 
-See `ml/README.md`. `train.py` and `export_onnx.py` are ready for when a
-labelled dataset (e.g. RDD 2022 + custom) is available. Drop an exported
-`model.onnx` at `edge/models/model.onnx` and the edge agent switches from
-mock to real inference automatically.
+See `ml/README.md` for the trained v2 model (9 classes, mAP50 0.665). Export
+with `ml/export_onnx.py` and drop `model.onnx` at `edge/models/` — the edge
+agent runs real inference only and errors out if the model is missing.
 
 ## License
 

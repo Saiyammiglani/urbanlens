@@ -2,7 +2,7 @@
 
 ```
 ┌──────────────────────────── BUS (EDGE) ────────────────────────────┐
-│  Dashcam/Webcam ─► Detector (ONNX YOLO or Mock)                    │
+│  Dashcam/Webcam ─► Detector (ONNX YOLOv8 — required)               │
 │        │                                                           │
 │        ▼                                                           │
 │  Privacy filter (blur/pxlate people, crop evidence JPEG)           │
@@ -31,8 +31,8 @@
 
 - **Metadata-first**: only small blurred JPEG crops + JSON leave the bus
   (~5–20 KB per incident). Raw video never leaves the vehicle.
-- **Mock-detector fallback**: identical `detect()` contract for ONNX and mock,
-  so the complete pipeline is demonstrable before any model exists.
+- **Real inference only**: the edge agent refuses to start without the trained
+  ONNX model — no synthetic/fallback detections ever reach the backend.
 - **Dedup at ingestion, not edge**: buses cross paths; only the backend has
   the global view needed to merge "same pothole, three buses".
 - **SQLite ↔ PostGIS swap**: same SQLAlchemy models run on a laptop
