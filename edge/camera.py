@@ -2,6 +2,7 @@
 
 Works with: live webcam index, recorded route video (for demos/replays), or a
 plain image folder. Always yields (frame_bgr, frame_id, timestamp_iso).
+Real sources only — no synthetic frames.
 """
 import time
 from dataclasses import dataclass
@@ -20,27 +21,17 @@ class Frame:
 class CameraSource:
     def __init__(self, source: str | int = 0, fps_cap: float = 5.0):
         """
-        source: webcam index (int), video file path, or 'mock' for synthetic frames.
+        source: webcam index (int or digit-string) or a video file path.
         fps_cap: cap the processing rate to save edge CPU/battery.
         """
         self.source = source
         self.fps_cap = fps_cap
         self._frame_id = 0
-        if source == "mock":
-            self._cap = None
-        else:
-            self._cap = cv2.VideoCapture(int(source) if isinstance(source, str) and source.isdigit() else source)
-            if not self._cap.isOpened():
-                raise RuntimeError(f"cannot open video source: {source}")
+        self._cap = cv2.VideoCapture(int(source) if isinstance(source, str) and source.isdigit() else source)
+        if not self._cap.isOpened():
+            raise RuntimeError(f"cannot open video source: {source}")
         self._interval = 1.0 / max(fps_cap, 0.1)
         self._last = 0.0
-
-    def _mock_frame(self):
-        import numpy as np
-        img = np.zeros((480, 640, 3), dtype=np.uint8)
-        cv2.putText(img, f"MOCK BUS CAM  frame={self._frame_id}",
-                    (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        return img
 
     def read(self) -> Frame | None:
         """Return next frame honouring fps_cap, or None when source ends."""
@@ -50,16 +41,13 @@ class CameraSource:
         self._last = time.time()
         self._frame_id += 1
 
-        if self._cap is None:
-            return Frame(self._mock_frame(), self._frame_id, time.time())
         ok, img = self._cap.read()
         if not ok:
             return None  # end of video / stream glitch
         return Frame(img, self._frame_id, time.time())
 
     def release(self):
-        if self._cap is not None:
-            self._cap.release()
+        self._cap.release()
 
 
 def find_demo_video() -> str | None:

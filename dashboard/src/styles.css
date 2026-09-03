@@ -370,6 +370,160 @@ body {
 }
 .btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
 .btn:active { transform: scale(0.97); }
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   MEDIA UPLOAD + LIVE CAMERA pages
+   ============================================================ */
+
+.upload-page, .livecam-page {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 8px 40px;
+}
+
+.dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: 14px;
+  background: var(--bg-card);
+  padding: 44px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover, .dropzone:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.dropzone.drag {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+}
+.dropzone-icon { font-size: 34px; margin-bottom: 10px; }
+.dropzone-title { font: 600 17px var(--font-display); color: var(--text); }
+.dropzone-sub { margin-top: 6px; color: var(--text-dim); font-size: 13px; }
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.upload-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  flex: 1;
+  min-width: 200px;
+}
+.upload-field .select, .upload-field .search-input {
+  width: 100%;
+}
+
+.upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.upload-list .panel-title {
+  font: 600 15px var(--font-display);
+  color: var(--text);
+}
+.upload-card { position: relative; }
+
+.livecam-stage {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border);
+  aspect-ratio: 16 / 10;
+  display: grid;
+  place-items: center;
+}
+.livecam-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.livecam-placeholder { text-align: center; padding: 24px; }
+
+.livecam-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.livecam-stats {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.btn-danger-outline { color: #f87171; }
+
+.detail-sub { display: flex; flex-direction: column; gap: 2px; }
+.detail-address { color: var(--text); font-size: 13.5px; font-weight: 500; line-height: 1.35; }
+.detail-coords { color: var(--text-dim); font-size: 11.5px; font-family: var(--font-mono, monospace); }
+
+/* ============================================================
+   FLEET STRIP (reporting vehicles on the live map)
+   ============================================================ */
+
+.fleet-strip {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
+}
+.fleet-active { font-size: 11px; color: #22c55e; }
+.fleet-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 2px 2px;
+  scrollbar-width: thin;
+}
+.fleet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-raised);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+.fleet-chip.active {
+  border-color: rgba(34, 197, 94, 0.45);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
+}
+.fleet-chip.active .fleet-chip-seen { color: #22c55e; }
+.fleet-chip-icon { font-size: 14px; }
+.fleet-chip-code {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  color: var(--text);
+}
+.fleet-chip-seen { font-size: 11px; }
 
 .btn-primary {
   background: var(--brand); border-color: var(--brand); color: #06222a;

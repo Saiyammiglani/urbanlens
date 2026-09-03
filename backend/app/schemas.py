@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from .models import IncidentStatus
 
@@ -43,6 +43,11 @@ class ObservationIn(BaseModel):
     bbox_area_px: int = 0
     speed_kmh: float = 0.0
     image_b64: str | None = None
+    vehicle_type: str = "bus"   # bus|garbage_truck|ambulance|tanker|municipal_car|...
+
+
+VEHICLE_TYPES = {"bus", "garbage_truck", "ambulance", "tanker",
+                 "municipal_car", "police_car", "other"}
 
 
 class IngestIn(BaseModel):
@@ -62,11 +67,26 @@ class IncidentUpdateIn(BaseModel):
     assigned_dept: str | None = None
 
 
+class VehicleOut(BaseModel):
+    code: str
+    vehicle_type: str
+    route: str
+    last_seen: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class FleetOut(BaseModel):
+    fleet: list[VehicleOut]
+
+
 class IncidentOut(BaseModel):
     id: str
     label: str
     lat: float
     lon: float
+    address: str | None = None   # reverse-geocoded via Nominatim (OSM)
     severity: int
     status: IncidentStatus
     confidence: float
@@ -78,6 +98,12 @@ class IncidentOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_serializer("created_at", "updated_at")
+    def _utc(self, dt: datetime) -> str:
+        # SQLite returns naive UTC datetimes; browsers parse those as LOCAL
+        # time. Always mark them as UTC so client timestamps stay correct.
+        return dt.isoformat() + ("" if dt.tzinfo else "Z")
 
 
 class IncidentUpdateOut(BaseModel):
@@ -91,6 +117,10 @@ class IncidentUpdateOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_serializer("created_at")
+    def _utc(self, dt: datetime) -> str:
+        return dt.isoformat() + ("" if dt.tzinfo else "Z")
 
 
 class StatsOut(BaseModel):

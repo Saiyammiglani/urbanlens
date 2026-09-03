@@ -8,7 +8,7 @@ from . import severity
 from .database import get_db
 from .dedup import find_matching_incident
 from .models import Incident, Observation, Vehicle
-from .schemas import DEPT_MAP, LABELS, IngestIn, IngestResult, ObservationIn
+from .schemas import DEPT_MAP, LABELS, VEHICLE_TYPES, IngestIn, IngestResult, ObservationIn
 
 router = APIRouter(prefix="/api/v1/ingest", tags=["ingest"])
 
@@ -21,11 +21,16 @@ def process_observation(db: Session, obs: ObservationIn) -> bool:
     detected_at = obs.detected_at or datetime.now(timezone.utc)
 
     # keep vehicle registry fresh
+    vtype = (obs.vehicle_type or "bus").strip().lower()
+    if vtype not in VEHICLE_TYPES:
+        vtype = "other"
     vehicle = db.query(Vehicle).filter(Vehicle.code == obs.vehicle_code).one_or_none()
     if vehicle is None:
-        vehicle = Vehicle(code=obs.vehicle_code)
+        vehicle = Vehicle(code=obs.vehicle_code, vehicle_type=vtype)
         db.add(vehicle)
         db.flush()  # visible to later lookups in the same batch (avoids dup INSERT) 
+    elif vehicle.vehicle_type != vtype:
+        vehicle.vehicle_type = vtype  # adopt latest reported type
     vehicle.last_seen = datetime.now(timezone.utc)
 
     existing = find_matching_incident(db, obs.label, obs.lat, obs.lon, detected_at)

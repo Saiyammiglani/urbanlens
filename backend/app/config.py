@@ -16,6 +16,15 @@ class Settings:
     RUN_MQTT_WORKER: bool = os.getenv("RUN_MQTT_WORKER", "0") == "1"
     API_TOKEN: str = os.getenv("API_TOKEN", "sih-demo-token")
 
+    # External data APIs (free tiers) — keys live in .env, never committed
+    OPENAQ_API_KEY: str = os.getenv("OPENAQ_API_KEY", "")
+    DATAGOV_API_KEY: str = os.getenv("DATAGOV_API_KEY", "")
+
+    # Edge agent launcher (used by the media upload page)
+    EDGE_PYTHON: str = os.getenv("EDGE_PYTHON") or str(
+        Path(os.getenv("LOCALAPPDATA", "")) / "Programs" / "Python" / "Python312" / "python.exe"
+    )
+
     # Dedup engine tuning
     DEDUP_RADIUS_M: float = 35.0       # spatial dedup radius
     DEDUP_WINDOW_MIN: int = 240        # temporal window (minutes)

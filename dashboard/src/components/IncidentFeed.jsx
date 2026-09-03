@@ -116,7 +116,7 @@ export default function IncidentFeed({ incidents, loading, selected, onSelect, o
                 {prettyLabel(inc.label)}
               </div>
               <div className="card-dept">{inc.assigned_dept || "Unassigned"}</div>
-              <div className="card-loc">{inc.lat.toFixed(5)}, {inc.lon.toFixed(5)}</div>
+              <div className="card-loc">{inc.address ? `📍 ${inc.address}` : `${inc.lat.toFixed(5)}, ${inc.lon.toFixed(5)}`}</div>
 
               <div className="card-meta">
                 <span className={`status-badge ${statusClass(inc.status)}`}>

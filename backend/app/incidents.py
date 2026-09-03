@@ -10,10 +10,18 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .database import get_db
-from .models import Incident, IncidentStatus, IncidentUpdate
-from .schemas import IncidentOut, IncidentUpdateIn, IncidentUpdateOut, StatsOut
+from .models import Incident, IncidentStatus, IncidentUpdate, Vehicle
+from .schemas import IncidentOut, IncidentUpdateIn, IncidentUpdateOut, StatsOut, FleetOut
 
 router = APIRouter(prefix="/api/v1/incidents", tags=["incidents"])
+
+# statuses that still need crew attention (REJECTED and RESOLVED are closed)
+OPEN_STATUSES = (
+    IncidentStatus.NEW,
+    IncidentStatus.CONFIRMED,
+    IncidentStatus.ASSIGNED,
+    IncidentStatus.IN_PROGRESS,
+)
 
 ALLOWED = {
     IncidentStatus.NEW: {IncidentStatus.CONFIRMED, IncidentStatus.REJECTED},
@@ -31,6 +39,7 @@ def list_incidents(
     label: str | None = Query(default=None),
     min_severity: int = Query(default=1, ge=1, le=10),
     limit: int = Query(default=200, le=1000),
+    with_address: bool = Query(default=False, description="reverse-geocode incidents (slower, cached)"),
     db: Session = Depends(get_db),
 ):
     q = select(Incident).where(Incident.severity >= min_severity).limit(limit)
@@ -38,7 +47,20 @@ def list_incidents(
         q = q.where(Incident.status == status)
     if label:
         q = q.where(Incident.label == label)
-    return db.execute(q.order_by(Incident.severity.desc(), Incident.created_at.desc())).scalars().all()
+    rows = db.execute(q.order_by(Incident.severity.desc(), Incident.created_at.desc())).scalars().all()
+    if with_address:
+        from .weather import reverse_geocode
+        # detail view only: cacheable, one request per ~110m spot
+        for inc in rows[:50]:  # cap so list stays fast
+            inc.address = reverse_geocode(inc.lat, inc.lon) or None
+    return rows
+
+
+@router.get("/fleet", response_model=FleetOut)
+def fleet(db: Session = Depends(get_db)):
+    """Active government fleet vehicles reporting to the platform."""
+    vehicles = db.query(Vehicle).order_by(Vehicle.last_seen.desc()).limit(200).all()
+    return {"fleet": vehicles}
 
 
 @router.get("/stats", response_model=StatsOut)
@@ -47,13 +69,16 @@ def stats(db: Session = Depends(get_db)):
     resolved = db.execute(
         select(func.count(Incident.id)).where(Incident.status == IncidentStatus.RESOLVED)
     ).scalar() or 0
+    open_count = db.execute(
+        select(func.count(Incident.id)).where(Incident.status.in_(OPEN_STATUSES))
+    ).scalar() or 0
     avg_sev = db.execute(select(func.avg(Incident.severity))).scalar() or 0.0
     rows = db.execute(
         select(Incident.label, func.count(Incident.id)).group_by(Incident.label)
     ).all()
     return StatsOut(
         total=total,
-        open=total - resolved,
+        open=open_count,
         resolved=resolved,
         avg_severity=round(float(avg_sev), 2),
         by_label={label: count for label, count in rows},
@@ -65,6 +90,8 @@ def get_incident(incident_id: str, db: Session = Depends(get_db)):
     inc = db.get(Incident, incident_id)
     if inc is None:
         raise HTTPException(404, "incident not found")
+    from .weather import reverse_geocode
+    inc.address = reverse_geocode(inc.lat, inc.lon) or None
     return inc
 
 

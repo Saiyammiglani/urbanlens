@@ -66,11 +66,13 @@ def make_uploader(backend_url: str | None, mqtt_host: str | None,
     raise ValueError("no transport configured: set MQTT_HOST or EDGE_BACKEND_URL")
 
 
-def record_from_detection(det, fix, vehicle_code: str, image_b64: str | None) -> dict:
+def record_from_detection(det, fix, vehicle_code: str, image_b64: str | None,
+                          vehicle_type: str = "bus") -> dict:
     """Shape must match backend ObservationIn exactly."""
     from datetime import datetime, timezone
     return {
         "vehicle_code": vehicle_code,
+        "vehicle_type": vehicle_type,
         "label": det.label,
         "confidence": round(det.confidence, 4),
         "lat": round(fix.lat, 6),

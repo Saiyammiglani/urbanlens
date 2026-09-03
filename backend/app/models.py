@@ -29,7 +29,8 @@ class IncidentStatus(str, enum.Enum):
 class Vehicle(Base):
     __tablename__ = "vehicles"
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_uuid)
-    code: Mapped[str] = mapped_column(String(32), unique=True)  # e.g. "BL-BUS-014"
+    code: Mapped[str] = mapped_column(String(32), unique=True)  # e.g. "MH01BV4521" (plate)
+    vehicle_type: Mapped[str] = mapped_column(String(24), default="bus")  # bus|garbage_truck|ambulance|tanker|municipal_car|...
     route: Mapped[str] = mapped_column(String(64), default="")
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

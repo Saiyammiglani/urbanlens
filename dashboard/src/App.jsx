@@ -13,6 +13,9 @@ import IncidentFeed from "./components/IncidentFeed.jsx";
 import IncidentDetail from "./components/IncidentDetail.jsx";
 import SmartRoute from "./components/SmartRoute.jsx";
 import StatsBar from "./components/StatsBar.jsx";
+import Uploads from "./components/Uploads.jsx";
+import LiveCam from "./components/LiveCam.jsx";
+import FleetStrip from "./components/FleetStrip.jsx";
 
 const STATUSES = ["new", "confirmed", "assigned", "in_progress", "resolved", "rejected"];
 
@@ -28,6 +31,8 @@ const VIEWS = [
   { id: "overview", label: "Live Map" },
   { id: "incidents", label: "Incidents" },
   { id: "analytics", label: "Analytics" },
+  { id: "uploads", label: "Media" },
+  { id: "livecam", label: "Live Cam" },
 ];
 
 const RAIL_ICONS = {
@@ -49,6 +54,18 @@ const RAIL_ICONS = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 3v18h18" />
       <path d="M7 15l4-5 3 3 5-7" />
+    </svg>
+  ),
+  uploads: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 16V4M7 9l5-5 5 5" />
+      <path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />
+    </svg>
+  ),
+  livecam: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+      <path d="M16 10l6-3v10l-6-3" />
     </svg>
   ),
 };
@@ -126,16 +143,22 @@ export default function App() {
   const [view, setView] = useState("overview");
   const [lastSync, setLastSync] = useState(null);
   const prevIds = useRef(new Set());
+  const dataSig = useRef("");        // filter context of the current incidents dataset
+  const lastPingSig = useRef(null);  // filter context when prevIds was last written
   const [pingIds, setPingIds] = useState(new Set());
   const firstLoad = useRef(true);
 
   const refresh = async () => {
+    // filter context of this fetch — travels with the data so the ping
+    // effect can tell "new detections" apart from "same data, new filter"
+    const sig = `${statusFilter}|${labelFilter}|${minSeverity}`;
     try {
       const [incs, st, zs] = await Promise.all([
         fetchIncidents({
           status: statusFilter || undefined,
           label: labelFilter || undefined,
           min_severity: minSeverity,
+          limit: 1000, // backend caps at 200 by default — never silently truncate
         }),
         fetchStats(),
         fetchZones(),
@@ -143,6 +166,7 @@ export default function App() {
       setIncidents(incs);
       setStats(st);
       setZones(zs);
+      dataSig.current = sig;
       setError(null);
       setLastSync(Date.now());
     } catch (e) {
@@ -175,11 +199,15 @@ export default function App() {
   }, [incidents]);
 
   // detect brand-new incidents → ripple ping on the map for 8 s
+  // A ping only fires when the dataset's filter context is UNCHANGED — a
+  // filter switch re-diffs the set and must never ripple old incidents.
   useEffect(() => {
     const ids = new Set(incidents.map((i) => i.id));
     const fresh = [...ids].filter((id) => !prevIds.current.has(id));
+    const sigChanged = lastPingSig.current !== dataSig.current;
+    lastPingSig.current = dataSig.current;
     prevIds.current = ids;
-    if (fresh.length && prevIds.current.size > fresh.length) { // skip initial load
+    if (!sigChanged && fresh.length && prevIds.current.size > fresh.length) { // skip initial fill
       setPingIds((p) => new Set([...p, ...fresh]));
       const t = setTimeout(() => {
         setPingIds((p) => {
@@ -211,12 +239,12 @@ export default function App() {
 
   const mapLayers = (
     <>
+      {/* CARTO dark basemap: keyless, zoom 0-20 (ESRI Dark Gray stops at 16
+          and serves "map data not available" placeholders when zoomed in) */}
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors &copy; Esri, HERE, Garmin'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-      />
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+        attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        maxZoom={19}
       />
       <ZoomControl position="bottomright" />
       {incidents.map((inc) => {
@@ -240,6 +268,7 @@ export default function App() {
           >
             <Tooltip>
               <b style={{ color: c }}>{prettyLabel(inc.label)}</b> · sev {inc.severity} · {prettyLabel(inc.status)}
+              {inc.address ? <><br />📍 {inc.address}</> : null}
             </Tooltip>
             <Popup>
               <b style={{ color: c }}>{labelIcon(inc.label)} {prettyLabel(inc.label)}</b>
@@ -434,7 +463,10 @@ export default function App() {
           <div className="pagehead">
             <div>
               <h1 className="pagehead-title">
-                {view === "overview" ? "Urban Intelligence" : view === "incidents" ? "Incident Queue" : "Analytics"}
+                {view === "overview" ? "Urban Intelligence" :
+                 view === "incidents" ? "Incident Queue" :
+                 view === "analytics" ? "Analytics" :
+                 view === "uploads" ? "Media Upload" : "Live Camera"}
               </h1>
               <div className="pagehead-sub">
                 {view === "overview" && (
@@ -442,6 +474,8 @@ export default function App() {
                 )}
                 {view === "incidents" && <>Full queue · {incidents.length} shown · sorted by severity</>}
                 {view === "analytics" && <>Live breakdown of the current filter set</>}
+                {view === "uploads" && <>Drop route footage — the fleet agent processes it end-to-end</>}
+                {view === "livecam" && <>Real-time detection from a live camera · auto-reports to the map</>}
               </div>
             </div>
             <div className="pagehead-actions">
@@ -470,6 +504,7 @@ export default function App() {
             <div className="workspace">
               {/* Map card */}
               <div className="map-card">
+                <FleetStrip />
                 <div className="map-head">
                   <div className="map-head-left">
                     <span className="map-head-title">
@@ -481,7 +516,7 @@ export default function App() {
                   </span>
                 </div>
                 <div className="map-body">
-                  <MapContainer center={[28.6139, 77.209]} zoom={12} scrollWheelZoom zoomControl={false}>
+                  <MapContainer center={[28.6139, 77.209]} zoom={12} minZoom={4} maxZoom={19} scrollWheelZoom zoomControl={false}>
                     {mapLayers}
                   </MapContainer>
 
@@ -531,6 +566,10 @@ export default function App() {
           )}
 
           {view === "analytics" && analytics}
+
+          {view === "uploads" && <Uploads onToast={showToast} />}
+
+          {view === "livecam" && <LiveCam onToast={showToast} />}
         </div>
       </div>
 
