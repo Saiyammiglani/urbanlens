@@ -146,7 +146,7 @@ export default function Uploads({ onToast }) {
         </label>
         <label className="upload-field">
           <span>Vehicle plate / code</span>
-          <input className="search-input" value={vehicle} onChange={(e) => setVehicle(e.target.value)} />
+          <input className="plate-input" value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="e.g. MH01BV4521" />
         </label>
         <label className="upload-field">
           <span>Simulated GPS route</span>

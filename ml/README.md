@@ -86,3 +86,23 @@ ml/venv/Scripts/python export_onnx.py --weights runs/urbanlens_v2/weights/best.p
 ```
 Deployed: `edge/models/model.onnx` + `model_labels.json` (9 labels) — edge agent
 auto-loads both on start; verified live (garbage_dump @ 0.83–0.91 conf).
+
+## v3 dataset (real-world sources + negatives)
+
+Base: v2 dataset (24,771 train / 3,951 val — hard-linked, no extra disk).
+
+Added real-world Kaggle datasets (see `integrate_kaggle_v3.py`):
+| Source | Ref | Images | Maps to |
+|---|---|---|---|
+| Road damage | sabidrahman/pothole-cracks-and-openmanhole | 2,816 | pothole, crack, open_manhole + good_road negatives |
+| Garbage | viswaprakash1990/garbage-detection (CC BY 4.0) | 9,422 | garbage_dump |
+| Surface crack | arunrk7/surface-crack-detection (CC BY) | 7,500 | crack patches + **6,000 background negatives** |
+| TACO litter | TACO (CC BY 4.0) | 4,200 | garbage_dump |
+
+Plus 148 hard negatives mined from our own street footage (leaves/clutter
+frames where v2 fires weakly — targets the #1 false-positive mode).
+
+Final v3: **46,279 train / 6,529 val** with 6,354 background/negative images.
+Degenerate boxes (w/h <= 0) are stripped by the prep script.
+
+Rebuild: `python prepare_dataset_v3.py` (deletes dataset_v3.yaml first).

@@ -1,0 +1,1287 @@
+{
+ "pothole": [
+  {
+   "ref": "andrewmvd/pothole-detection",
+   "title": "Pothole Detection",
+   "size_mb": 350.7,
+   "usability": 0.875,
+   "subtitle": "Improve road safety by detecting potholes."
+  },
+  {
+   "ref": "atulyakumar98/pothole-detection-dataset",
+   "title": "Pothole Detection Dataset",
+   "size_mb": 203.3,
+   "usability": 0.8125,
+   "subtitle": "Labelled image dataset containing 300+ images of roads containing potholes"
+  },
+  {
+   "ref": "rajdalsaniya/pothole-detection-dataset",
+   "title": "Pothole Detection Dataset",
+   "size_mb": 246.9,
+   "usability": 0.875,
+   "subtitle": "Detect Pothole On Road"
+  },
+  {
+   "ref": "anggadwisunarto/potholes-detection-yolov8",
+   "title": "Potholes-Detection-YOLOv8",
+   "size_mb": 753.4,
+   "usability": 0.8125,
+   "subtitle": "Annotated Pothole Detection Dataset for Object Detection Tasks"
+  },
+  {
+   "ref": "farzadnekouei/pothole-image-segmentation-dataset",
+   "title": "Pothole Image Segmentation Dataset",
+   "size_mb": 62.1,
+   "usability": 0.75,
+   "subtitle": "Pothole Image Segmentation Dataset"
+  },
+  {
+   "ref": "sachinpatel21/pothole-image-dataset",
+   "title": "Pothole Image Data-Set",
+   "size_mb": 302.9,
+   "usability": 0.875,
+   "subtitle": "Web Scrapped Road Images for Pothole Detection"
+  },
+  {
+   "ref": "jocelyndumlao/multi-weather-pothole-detection-mwpd",
+   "title": "Multi-Weather Pothole Detection (MWPD)",
+   "size_mb": 242.2,
+   "usability": 0.875,
+   "subtitle": "Detecting Potholes Accurately in Any Weather"
+  },
+  {
+   "ref": "chitholian/annotated-potholes-dataset",
+   "title": "Annotated Potholes Image Dataset",
+   "size_mb": 48.1,
+   "usability": 0.875,
+   "subtitle": "Fully bounding-box annotated image dataset of potholes and damaged roads."
+  },
+  {
+   "ref": "abhinavkulshreshth/pothole-detection-dataset",
+   "title": "Pothole Detection Dataset",
+   "size_mb": 2.4,
+   "usability": 0.6875,
+   "subtitle": "A dataset for detecting potholes using image classification/object detection"
+  },
+  {
+   "ref": "muskanverma24/pothole-detection-dataset-yolov11-optimized",
+   "title": "Pothole Detection Dataset: YOLOv11 Optimized",
+   "size_mb": 225.8,
+   "usability": 0.875,
+   "subtitle": "3,900+ Road Images for Pothole Detection in YOLO11 Format"
+  },
+  {
+   "ref": "raunakkesharwani/pothole-image-segmentation-dataset",
+   "title": "Pothole Image Segmentation Dataset",
+   "size_mb": 241.2,
+   "usability": 0.875,
+   "subtitle": "Pixel-Level Pothole Detection for Real-World Road Safety"
+  },
+  {
+   "ref": "mahyeks/pothrgbd-rgb-and-depth-images-of-potholes",
+   "title": "PothRGBD: RGB and Depth Images of Potholes",
+   "size_mb": 130.6,
+   "usability": 0.875,
+   "subtitle": "1000 real-world RGB and depth image pairs with YOLOv8-style segmentation labels"
+  },
+  {
+   "ref": "mahyeks/pothole-segmentation-images-with-depth-information",
+   "title": "Pothole Segmentation Images with Depth Information",
+   "size_mb": 130.6,
+   "usability": 0.6875,
+   "subtitle": "Pothole Segmentation Images with Depth Information"
+  },
+  {
+   "ref": "jiahangli617/udtiri",
+   "title": "UDTIRI",
+   "size_mb": 833.2,
+   "usability": 0.625,
+   "subtitle": "UDTIRI dataset V1.0 with one class(pothole)"
+  },
+  {
+   "ref": "kag0306/pothole",
+   "title": "Pothole",
+   "size_mb": 388.2,
+   "usability": 0.3529412,
+   "subtitle": "Pothole, Crack Segmentation"
+  },
+  {
+   "ref": "longshiba/pothole-segmentation-yolo-augmented",
+   "title": "Pothole Segmentation YOLO Augmented",
+   "size_mb": 613.0,
+   "usability": 0.25,
+   "subtitle": ""
+  },
+  {
+   "ref": "rangerfan/pothole-600",
+   "title": "Pothole-600",
+   "size_mb": 223.3,
+   "usability": 0.5,
+   "subtitle": ""
+  },
+  {
+   "ref": "abdulrahmanksaeed/pothole-patrol-mask-r-cnn-infrastructure-ai",
+   "title": "Pothole Patrol: Mask R-CNN Infrastructure AI",
+   "size_mb": 225.9,
+   "usability": 0.75,
+   "subtitle": "Detects and masks potholes in a road and gives approx. asphalt amount to fill."
+  },
+  {
+   "ref": "abdulrahmanksaeed/pothole-patrol-normalized-dataset",
+   "title": "Pothole Patrol Normalized Dataset",
+   "size_mb": 137.2,
+   "usability": 0.8125,
+   "subtitle": "A Dataset containing images of potholes ready to be fed to a Mask R-CNN."
+  },
+  {
+   "ref": "sabidrahman/pothole-cracks-and-openmanhole",
+   "title": "potholes, cracks and openmanholes (Road Hazards)",
+   "size_mb": 1078.3,
+   "usability": 1.0,
+   "subtitle": "The dataset includes train and valid sets with annotations"
+  },
+  {
+   "ref": "lorenzoarcioni/road-damage-dataset-potholes-cracks-and-manholes",
+   "title": "Road Damage Dataset: Potholes, Cracks and Manholes",
+   "size_mb": 194.2,
+   "usability": 0.875,
+   "subtitle": "A curated set of 2,000+ YOLO-annotated road surface images"
+  },
+  {
+   "ref": "virenbr11/pothole-and-plain-rode-images",
+   "title": "Pothole and Plain Road Images",
+   "size_mb": 252.5,
+   "usability": 0.375,
+   "subtitle": "Pothole Detection, Image Classification"
+  },
+  {
+   "ref": "dextergoes/pothole-sensor-data",
+   "title": "Pothole, Road Quality Detection  Sensor data",
+   "size_mb": 1.2,
+   "usability": 0.47058824,
+   "subtitle": ""
+  },
+  {
+   "ref": "banilkumar20phd7071/pothole-and-normal-road-pavement-augmented-data",
+   "title": "Pothole and Normal Road Pavement Augmented Data",
+   "size_mb": 310.6,
+   "usability": 0.625,
+   "subtitle": ""
+  }
+ ],
+ "crack": [
+  {
+   "ref": "arunrk7/surface-crack-detection",
+   "title": "Surface Crack Detection",
+   "size_mb": 244.5,
+   "usability": 0.9375,
+   "subtitle": "Concrete surface sample images for Surface Crack Detection"
+  },
+  {
+   "ref": "lorenzoarcioni/road-damage-dataset-potholes-cracks-and-manholes",
+   "title": "Road Damage Dataset: Potholes, Cracks and Manholes",
+   "size_mb": 194.2,
+   "usability": 0.875,
+   "subtitle": "A curated set of 2,000+ YOLO-annotated road surface images"
+  },
+  {
+   "ref": "danishghaffar786/roads-and-bridges-cracks-yolov8-format",
+   "title": "Roads and Bridges Cracks (YOLOv8 Format)",
+   "size_mb": 262.8,
+   "usability": 0.75,
+   "subtitle": "Automated Crack Detection for Road and Bridge Maintenance"
+  },
+  {
+   "ref": "yidazhang07/bridge-cracks-image",
+   "title": " surface-defect-detection-dataset",
+   "size_mb": 158.1,
+   "usability": 0.8125,
+   "subtitle": "PCB Inspection\uff0cSolar Panels\uff0cFabric Defect\uff0cMagnetic Tile\uff0cKylberg Texture"
+  },
+  {
+   "ref": "ziya07/speed-bump-dataset",
+   "title": "Speed Bump Dataset",
+   "size_mb": 1893.7,
+   "usability": 0.625,
+   "subtitle": "Road Anomalies Bumps, Cracks, and Potholes"
+  },
+  {
+   "ref": "rukiyeaydn/road-crack-dataset",
+   "title": "Road Crack Dataset",
+   "size_mb": 49.0,
+   "usability": 1.0,
+   "subtitle": "Semantic segmentation dataset for detecting road surface defects"
+  },
+  {
+   "ref": "ziya07/bim-ai-integrated-dataset",
+   "title": "BIM-AI Integrated Dataset",
+   "size_mb": 0.2,
+   "usability": 0.88235295,
+   "subtitle": "Cost, Schedule, Structural Health, and Risk Assessment for Project Optimization"
+  },
+  {
+   "ref": "jefffffffsong/udtiri-crack",
+   "title": "UDTIRI-Crack",
+   "size_mb": 503.4,
+   "usability": 0.375,
+   "subtitle": ""
+  },
+  {
+   "ref": "parhamnooralishahi/drone-based-inspection-of-road-pavement",
+   "title": "Drone-based Inspection of Road Pavement",
+   "size_mb": 0.0,
+   "usability": 0.6875,
+   "subtitle": "The dataset for Drone-enabled Crack Detection"
+  },
+  {
+   "ref": "vincenttgre/pothole-detector-dataset-augmented",
+   "title": "PotHole Detector Dataset Augmented",
+   "size_mb": 1507.7,
+   "usability": 0.6875,
+   "subtitle": "Yolov5 Pothole Detection Dataset for South-East Asia"
+  },
+  {
+   "ref": "arnavr10880/concrete-crack-images-for-classification",
+   "title": "Concrete Crack Images for Classification",
+   "size_mb": 244.5,
+   "usability": 0.8125,
+   "subtitle": "Dataset containing concrete images having cracks for image classification"
+  },
+  {
+   "ref": "oluwaseunad/concrete-and-pavement-crack-images",
+   "title": "Concrete & Pavement Crack Dataset",
+   "size_mb": 334.7,
+   "usability": 0.875,
+   "subtitle": "A Dataset of 30K Images for Crack Detection on Concrete and Pavement Surfaces"
+  },
+  {
+   "ref": "imtkaggleteam/concrete-crack-classification",
+   "title": "Concrete Crack Classification \ud83c\udfd7",
+   "size_mb": 244.5,
+   "usability": 1.0,
+   "subtitle": "Concrete Crack Images for Classification"
+  },
+  {
+   "ref": "aniruddhsharma/structural-defects-network-concrete-crack-images",
+   "title": "Structural Defects Network (SDNET) 2018",
+   "size_mb": 530.1,
+   "usability": 0.875,
+   "subtitle": "Concrete Cracks Image Dataset"
+  },
+  {
+   "ref": "jakubniemiec/concrete-crack-images",
+   "title": "Concrete crack dataset",
+   "size_mb": 7.8,
+   "usability": 0.625,
+   "subtitle": "Concrete crack images for semantic segmentation "
+  },
+  {
+   "ref": "motono0223/concrete-crack-segmentation-dataset",
+   "title": "Concrete Crack Segmentation Dataset",
+   "size_mb": 718.2,
+   "usability": 0.4375,
+   "subtitle": ""
+  },
+  {
+   "ref": "thesighsrikar/concrete-crack-images-for-classification",
+   "title": "Concrete Crack Images for Classification",
+   "size_mb": 245.2,
+   "usability": 0.4375,
+   "subtitle": ""
+  },
+  {
+   "ref": "jankrueger/concrete-crack-images-for-classification-labelled",
+   "title": "Segmented Concrete Crack Images",
+   "size_mb": 4.1,
+   "usability": 0.875,
+   "subtitle": "Segmented infrastructure crack images."
+  },
+  {
+   "ref": "mahmudisnan/concrete-crack-segmentation",
+   "title": "Concrete Crack Segmentation",
+   "size_mb": 723.4,
+   "usability": 0.5,
+   "subtitle": ""
+  },
+  {
+   "ref": "pauldavid22/crack50020220509t090436z001",
+   "title": "CRACK500-20220509T090436Z-001",
+   "size_mb": 1643.2,
+   "usability": 0.375,
+   "subtitle": ""
+  },
+  {
+   "ref": "abhishek912615/pavement-crack-datasetinfrared-only",
+   "title": "Pavement crack dataset(infrared only)",
+   "size_mb": 946.2,
+   "usability": 0.25,
+   "subtitle": ""
+  },
+  {
+   "ref": "guijiezhu/stu-camcrack792",
+   "title": "STU_CamCrack792",
+   "size_mb": 567.3,
+   "usability": 0.5,
+   "subtitle": "Campus pavement crack segmentation dataset"
+  },
+  {
+   "ref": "abdukeram/intersecting-crack-analysis",
+   "title": "Intersecting-Crack-Analysis",
+   "size_mb": 70.8,
+   "usability": 0.4375,
+   "subtitle": ""
+  },
+  {
+   "ref": "zara2099/road-surface-recognition-dataset",
+   "title": "Road Surface Recognition Dataset",
+   "size_mb": 1456.4,
+   "usability": 0.4375,
+   "subtitle": "Annotated Road Images for Potholes, Cracks, and Manholes"
+  },
+  {
+   "ref": "seymurhasanov/sdnet2018-sample-annotated",
+   "title": "SDNET2018_sample_annotated",
+   "size_mb": 29.3,
+   "usability": 0.5625,
+   "subtitle": ""
+  }
+ ],
+ "garbage_dump": [
+  {
+   "ref": "viswaprakash1990/garbage-detection",
+   "title": "Garbage Detection \u2013 6 Waste Categories ",
+   "size_mb": 200.0,
+   "usability": 1.0,
+   "subtitle": "Dataset in YOLO Format (Please Give Upvote to This Dataset)"
+  },
+  {
+   "ref": "dataclusterlabs/domestic-trash-garbage-dataset",
+   "title": "Domestic Trash / Garbage Dataset",
+   "size_mb": 885.0,
+   "usability": 0.875,
+   "subtitle": "Dataset for trash detection"
+  },
+  {
+   "ref": "mvanshika/drone-garbage-detection",
+   "title": "drone_garbage_detection",
+   "size_mb": 136.7,
+   "usability": 1.0,
+   "subtitle": "Aerial Garbage Detection using Drone Images ( Formatted for Yolo V8 usage )"
+  },
+  {
+   "ref": "harshitkandoi7850/dataset-for-visual-plastic-type-recognition",
+   "title": "Dataset for Visual Plastic Type Recognition",
+   "size_mb": 946.7,
+   "usability": 0.875,
+   "subtitle": "It has 3,000+ images of 6 plastic types, suitable for classification tasks."
+  },
+  {
+   "ref": "dataclusterlabs/plastic-object-detection-dataset",
+   "title": "Plastic Object Detection Dataset",
+   "size_mb": 181.2,
+   "usability": 0.75,
+   "subtitle": "Train Your Model to Spot Household Plastics "
+  },
+  {
+   "ref": "dataclusterlabs/cardboard-object-detection",
+   "title": "Cardboard Box Detection",
+   "size_mb": 129.3,
+   "usability": 0.75,
+   "subtitle": "Dataset for cardboard detection."
+  },
+  {
+   "ref": "muftirestumahesa/obstacles-in-public-spaces-for-dist-yolo",
+   "title": "Obstacles in Public Spaces for Dist-YOLO",
+   "size_mb": 275.0,
+   "usability": 0.9375,
+   "subtitle": "Annotated Images of Obstacles for Object Detection in Public Spaces"
+  },
+  {
+   "ref": "aifahim/dhaka-ai-traffic-challenge-weights-yolov5",
+   "title": "Dhaka AI Traffic Challenge Weights - Yolov5 ",
+   "size_mb": 113.5,
+   "usability": 0.9375,
+   "subtitle": "Dhaka AI Traffic Challenge Weights using Yolov5 By Team AutoBot"
+  },
+  {
+   "ref": "pravesh212006/garbage-detection-dataset",
+   "title": "Garbage_Detection_Dataset",
+   "size_mb": 1454.8,
+   "usability": 0.5,
+   "subtitle": "YOLO-Ready Municipal Waste & Litter Dataset"
+  },
+  {
+   "ref": "tuhanasinan/real-world-waste-classification-dataset-5-class",
+   "title": "Real-World Waste Classification Dataset (5 class)",
+   "size_mb": 380.6,
+   "usability": 0.5,
+   "subtitle": ""
+  },
+  {
+   "ref": "vencerlanz09/taco-dataset-yolo-format",
+   "title": "TACO Dataset YOLO Format",
+   "size_mb": 243.2,
+   "usability": 0.875,
+   "subtitle": "The TACO (Trash Annotations in Context) dataset, now made available in YOLO"
+  },
+  {
+   "ref": "bouweceunen/trained-models-taco-trash-annotations-in-context",
+   "title": "TACO (Trash Annotations in Context) Trained Models",
+   "size_mb": 116.2,
+   "usability": 1.0,
+   "subtitle": "SSD MobileNet v2 in .uff/.pb/.engine file trained with 100000 steps."
+  },
+  {
+   "ref": "shivamb/underwater-trash-detection",
+   "title": "Underwater Trash Detection",
+   "size_mb": 181.7,
+   "usability": 0.875,
+   "subtitle": "A Bounding Box Labeled Dataset of Underwater Trash"
+  },
+  {
+   "ref": "programmerrdai/road-issues-detection-dataset",
+   "title": "Road Issues Detection Dataset",
+   "size_mb": 500.4,
+   "usability": 0.75,
+   "subtitle": "9,660 High-Resolution Images for Road Infrastructure Monitoring"
+  },
+  {
+   "ref": "kkhandekar/taco-dataset",
+   "title": "TACO Dataset",
+   "size_mb": 0.7,
+   "usability": 0.9375,
+   "subtitle": "Trash Annotations in Context"
+  },
+  {
+   "ref": "unidpro/outdoor-garbage",
+   "title": "Outdoor Garbage Dataset",
+   "size_mb": 607.8,
+   "usability": 0.9411765,
+   "subtitle": "Dataset of photos consisting of garbage cans of various capacities and types."
+  },
+  {
+   "ref": "fitcompetition/final-round-fit-2025",
+   "title": "Final Round FIT 2025",
+   "size_mb": 1420.0,
+   "usability": 0.7647059,
+   "subtitle": "Final Round Data Science FIT Competition 2025"
+  },
+  {
+   "ref": "mirodiljondusmatov/trash-detection-yolo",
+   "title": "trash detection yolo",
+   "size_mb": 261.0,
+   "usability": 0.5625,
+   "subtitle": ""
+  },
+  {
+   "ref": "sumn2u/garbage-classification-v2",
+   "title": "Garbage Dataset",
+   "size_mb": 1147.9,
+   "usability": 1.0,
+   "subtitle": "A Comprehensive Image Dataset for Garbage Classification and Recycling"
+  },
+  {
+   "ref": "parohod/warp-waste-recycling-plant-dataset",
+   "title": "WaRP - Waste Recycling Plant Dataset",
+   "size_mb": 845.0,
+   "usability": 1.0,
+   "subtitle": "Labeled images of an industrial waste sorting plant"
+  },
+  {
+   "ref": "arkadiyhacks/drinking-waste-classification",
+   "title": "Drinking Waste Classification ",
+   "size_mb": 1605.6,
+   "usability": 0.75,
+   "subtitle": "4 classes of waste: Aluminium Cans, Glass bottles, PET bottles, HDPE bottles"
+  },
+  {
+   "ref": "devv9dsharma/beach-waste-detection-dataset",
+   "title": "Beach Waste Detection Dataset",
+   "size_mb": 69.9,
+   "usability": 0.625,
+   "subtitle": "A curated image dataset for binary classification of beach waste vs clean areas."
+  },
+  {
+   "ref": "siddharthkumarsah/plastic-bottles-image-dataset",
+   "title": "Plastic Bottles in the wild Image Dataset",
+   "size_mb": 1638.6,
+   "usability": 0.875,
+   "subtitle": "8000 ANNOTATED images of plastic bottles in the wild"
+  },
+  {
+   "ref": "ravirajsinh45/crop-and-weed-detection-data-with-bounding-boxes",
+   "title": "crop and weed detection data with bounding boxes",
+   "size_mb": 83.0,
+   "usability": 0.9375,
+   "subtitle": "Agricultural data of Sesame crop and different weeds with YOLO and pascal labels"
+  },
+  {
+   "ref": "harshpanwar/aquatrash",
+   "title": "AquaTrash",
+   "size_mb": 86.0,
+   "usability": 0.8235294,
+   "subtitle": "Dataset of Trash Images for the waste management and protection of Aquatic Life"
+  },
+  {
+   "ref": "engrbasit62/garbage-dataset-plusyaml",
+   "title": "Garbage_dataset_PlusYaml",
+   "size_mb": 771.4,
+   "usability": 0.75,
+   "subtitle": "YOLO Waste Detection Dataset \u2014 7 Classes for Smarter Recycling"
+  },
+  {
+   "ref": "akshat103/e-waste-image-dataset",
+   "title": "E Waste Image Dataset",
+   "size_mb": 12.4,
+   "usability": 0.5625,
+   "subtitle": "Electronic Waste Images of 10 Electric Items "
+  }
+ ],
+ "waterlogging": [
+  {
+   "ref": "pratyushpuri/urban-flood-risk-data-global-city-analysis-2025",
+   "title": "Urban Flood Risk Data: Global City Analysis 2025",
+   "size_mb": 0.6,
+   "usability": 1.0,
+   "subtitle": "2900+ flood monitoring points across 58 cities with risk assessment metrics 2025"
+  },
+  {
+   "ref": "naiyakhalid/flood-prediction-dataset",
+   "title": "Flood Prediction Dataset",
+   "size_mb": 30.0,
+   "usability": 1.0,
+   "subtitle": "Regression with flood prediction on full dataset"
+  },
+  {
+   "ref": "macaronimutton/mumbai-rainfall-data",
+   "title": "Mumbai Rainfall Data",
+   "size_mb": 0.0,
+   "usability": 1.0,
+   "subtitle": "Unleashing Mumbai's Monsoons \ud83c\udf27\ufe0f\ud83d\udcca: Explore Rainfall Patterns Like Never Before!"
+  },
+  {
+   "ref": "s3programmer/flood-risk-in-india",
+   "title": "Flood Risk in India",
+   "size_mb": 0.9,
+   "usability": 1.0,
+   "subtitle": "Comprehensive Flood Risk Prediction Dataset for India"
+  },
+  {
+   "ref": "denvermagtibay/metro-manila-flood-prediction-20162020-daily",
+   "title": "Metro Manila Flood Prediction (2016\u20132020, Daily)",
+   "size_mb": 0.1,
+   "usability": 1.0,
+   "subtitle": "A 5-year daily dataset to help predict the next flood before it strikes."
+  },
+  {
+   "ref": "joint-research-centre/jrc-urban-flood-risk-luisa-platform-ref2014",
+   "title": "JRC Urban Flood Risk (LUISA Platform REF2014)",
+   "size_mb": 0.0,
+   "usability": 0.7058824,
+   "subtitle": "Explore EU Data from the Joint Research Centre"
+  },
+  {
+   "ref": "monkeyddonut/chennai-urban-flood-map-2015-raster-tif",
+   "title": "Chennai Urban Flood Map 2015 Raster Tif",
+   "size_mb": 0.9,
+   "usability": 0.9375,
+   "subtitle": "Depth data of 2015 flood event I chennai "
+  },
+  {
+   "ref": "aliahmadmphil/asian-monsoon-flood-prediction-and-risk-index",
+   "title": "Asian Monsoon Flood Prediction & Risk Index",
+   "size_mb": 1.0,
+   "usability": 0.8235294,
+   "subtitle": "High-Resolution Meteorological, Topographical, and Land-Cover Datasets for Advan"
+  },
+  {
+   "ref": "abhaykumarsrivastava/urban-flood-dataset-of-bangalore",
+   "title": "Urban Flood Dataset of Bangalore",
+   "size_mb": 0.1,
+   "usability": 0.29411766,
+   "subtitle": "Raw data generated by AI for Pre-processing "
+  },
+  {
+   "ref": "dewminimnaadi/sri-lanka-flood-risk-and-inundation-dataset",
+   "title": "Sri Lanka Flood Risk & Inundation Dataset",
+   "size_mb": 1.6,
+   "usability": 0.9411765,
+   "subtitle": "Synthetic geospatial and environmental records for flood risk modeling."
+  },
+  {
+   "ref": "ammanaveen/custom-multitask-indian-road-dataset-cmird",
+   "title": "Custom Multitask Indian Road Dataset (CMIRD)",
+   "size_mb": 1403.1,
+   "usability": 0.5625,
+   "subtitle": ""
+  },
+  {
+   "ref": "origindatalab/bangladesh-urban-traffic-dataset-free-sample",
+   "title": "Bangladesh Urban Traffic Dataset - Free Sample",
+   "size_mb": 114.2,
+   "usability": 0.9411765,
+   "subtitle": "Bangladesh Urban Traffic Dataset for Computer Vision and Autonomous Driving"
+  },
+  {
+   "ref": "patricklford/what-about-the-wind",
+   "title": "What about the Wind ?",
+   "size_mb": 0.0,
+   "usability": 0.9411765,
+   "subtitle": "Why does the wind blow and data about wind farms (2023)."
+  }
+ ],
+ "open_manhole": [
+  {
+   "ref": "abtinzandi/obstacle-detection-dataset",
+   "title": "Obstacle Detection Dataset",
+   "size_mb": 1514.0,
+   "usability": 0.9411765,
+   "subtitle": "YOLO obstacle-detection dataset for indoor/outdoor enviroments and street scenes"
+  },
+  {
+   "ref": "lorenzoarcioni/road-damage-dataset-potholes-cracks-and-manholes",
+   "title": "Road Damage Dataset: Potholes, Cracks and Manholes",
+   "size_mb": 194.2,
+   "usability": 0.875,
+   "subtitle": "A curated set of 2,000+ YOLO-annotated road surface images"
+  },
+  {
+   "ref": "notitltd/demo-utilitymanhole-detection-5-crops-and-data",
+   "title": "DEMO Utility/Manhole Detection (5 Crops & Data)",
+   "size_mb": 98.8,
+   "usability": 0.9411765,
+   "subtitle": "Computer Vison Object Detection Demo Dataset Complete with Metadata"
+  },
+  {
+   "ref": "deeppratap/manhole-detection",
+   "title": "manhole detection",
+   "size_mb": 3.9,
+   "usability": 0.3125,
+   "subtitle": ""
+  },
+  {
+   "ref": "pratyushpuri/urban-flood-risk-data-global-city-analysis-2025",
+   "title": "Urban Flood Risk Data: Global City Analysis 2025",
+   "size_mb": 0.6,
+   "usability": 1.0,
+   "subtitle": "2900+ flood monitoring points across 58 cities with risk assessment metrics 2025"
+  },
+  {
+   "ref": "zxjhaha/gpr-wells",
+   "title": "GPR B-scan Data",
+   "size_mb": 3.6,
+   "usability": 0.5,
+   "subtitle": "Two dimensional scanning data of ground penetrating radar for road manhole cover"
+  },
+  {
+   "ref": "rajeevpaudel1/urban-community-issues",
+   "title": "Urban Community Issues",
+   "size_mb": 786.2,
+   "usability": 0.8235294,
+   "subtitle": "Road Infrastructure & Urban Object Detection Dataset "
+  },
+  {
+   "ref": "zara2099/road-surface-recognition-dataset",
+   "title": "Road Surface Recognition Dataset",
+   "size_mb": 1456.4,
+   "usability": 0.4375,
+   "subtitle": "Annotated Road Images for Potholes, Cracks, and Manholes"
+  },
+  {
+   "ref": "shuaifanpi/urban-road-hazard-datasetyolo-format",
+   "title": "Urban Road Hazard Dataset(YOLO Format)",
+   "size_mb": 243.7,
+   "usability": 0.625,
+   "subtitle": ""
+  },
+  {
+   "ref": "ammanaveen/custom-multitask-indian-road-dataset-cmird",
+   "title": "Custom Multitask Indian Road Dataset (CMIRD)",
+   "size_mb": 1403.1,
+   "usability": 0.5625,
+   "subtitle": ""
+  },
+  {
+   "ref": "ndeekshareddy/dublin-city-council-customer-service-requests-log",
+   "title": "Dublin City Council customer service requests log",
+   "size_mb": 0.8,
+   "usability": 0.5882353,
+   "subtitle": ""
+  }
+ ],
+ "broken_streetlight": [
+  {
+   "ref": "notitltd/demo-street-light-detection-5-crop-images-and-data",
+   "title": "DEMO Street Light Detection (5 Crops & Data)",
+   "size_mb": 2.7,
+   "usability": 0.9411765,
+   "subtitle": "Computer Vison Object Detection Demo Street Light Dataset Complete with Metadata"
+  },
+  {
+   "ref": "simuletic/cctv-atm-robbery-detection-dataset-gun-and-knife",
+   "title": "CCTV ATM Robbery Detection Dataset: Gun & Knife",
+   "size_mb": 269.8,
+   "usability": 0.9375,
+   "subtitle": "Synthetic ATM Robbery Detection: Multi-Threat Bounding Boxes CCTV for Yolov8"
+  },
+  {
+   "ref": "permida/photovideofixationtransportsystemmoscow",
+   "title": "photo-video-fixation-transport-system-Moscow",
+   "size_mb": 0.1,
+   "usability": 0.9411765,
+   "subtitle": "photo-video-fixation of traffic rules intellectual transport system of Moscow"
+  },
+  {
+   "ref": "patricklford/blind-date-the-use-and-misuse-of-ghbgbl",
+   "title": "Blind Date: The use and misuse of GHB/GBL.",
+   "size_mb": 0.0,
+   "usability": 0.9411765,
+   "subtitle": "Should GHB screening be routinely included in forensic toxicology, post-mortem? "
+  },
+  {
+   "ref": "samuelayman/light-poles",
+   "title": "Light poles",
+   "size_mb": 50.4,
+   "usability": 0.8125,
+   "subtitle": "Yolo annotated light poles dataset"
+  },
+  {
+   "ref": "zunairashakeel08/intelligent-street-light-control-system-dataset",
+   "title": "Intelligent Street Light Control System Dataset",
+   "size_mb": 0.0,
+   "usability": 0.7058824,
+   "subtitle": "Synthetic data for AI-based smart streetlight control"
+  },
+  {
+   "ref": "lapnguyen2003/traffic-sign-detection-vietnam",
+   "title": "Traffic-sign-detection-VietNam",
+   "size_mb": 904.5,
+   "usability": 0.3529412,
+   "subtitle": ""
+  },
+  {
+   "ref": "abdelrhmanosama79/road-signs-detection-data-driven-approach",
+   "title": "Road Signs detection data driven approach",
+   "size_mb": 76.8,
+   "usability": 0.3125,
+   "subtitle": ""
+  },
+  {
+   "ref": "l0new0lf/toronto3dstreetlight260",
+   "title": "toronto3d-pole-260",
+   "size_mb": 947.1,
+   "usability": 0.4375,
+   "subtitle": ""
+  },
+  {
+   "ref": "l0new0lf/toronto3dpolen2648m",
+   "title": "toronto3d-pole-n264-4m",
+   "size_mb": 951.0,
+   "usability": 0.5,
+   "subtitle": ""
+  }
+ ],
+ "roadside_debris": [
+  {
+   "ref": "saksham07gupta/road-obstacledebris-detection",
+   "title": "Road Obstacle/Debris Detection",
+   "size_mb": 567.9,
+   "usability": 0.375,
+   "subtitle": ""
+  },
+  {
+   "ref": "nallamangala/road-issues-detection",
+   "title": "Road issues Detection",
+   "size_mb": 500.4,
+   "usability": 0.1875,
+   "subtitle": ""
+  },
+  {
+   "ref": "dataclusterlabs/footpath-dataset",
+   "title": "Footpath Image Dataset",
+   "size_mb": 159.2,
+   "usability": 0.6875,
+   "subtitle": "Train Your Models for Footpath Detection and Path Planning"
+  },
+  {
+   "ref": "jocelyndumlao/seaclear-marine-debris-detection-and-segmentation",
+   "title": "Seaclear Marine Debris Detection and Segmentation",
+   "size_mb": 1729.9,
+   "usability": 1.0,
+   "subtitle": "SeaClear: Detecting and Segmenting Marine Debris for a Cleaner Ocean"
+  },
+  {
+   "ref": "arnavs19/underwater-plastic-pollution-detection",
+   "title": "Underwater Plastic Pollution Detection",
+   "size_mb": 242.5,
+   "usability": 0.875,
+   "subtitle": "An Image Dataset of Plastics found Underwater for Detection & Monitoring"
+  },
+  {
+   "ref": "sadianawar/debris-detection-dataset",
+   "title": "Space Debris Detection Dataset",
+   "size_mb": 1401.6,
+   "usability": 0.47058824,
+   "subtitle": ""
+  },
+  {
+   "ref": "aniruddhsharma/structural-defects-network-concrete-crack-images",
+   "title": "Structural Defects Network (SDNET) 2018",
+   "size_mb": 530.1,
+   "usability": 0.875,
+   "subtitle": "Concrete Cracks Image Dataset"
+  },
+  {
+   "ref": "muhammadzakria2001/space-debris-detection-dataset-for-yolov8",
+   "title": "Space Debris Detection Dataset",
+   "size_mb": 75.7,
+   "usability": 0.625,
+   "subtitle": "Yolo-Detect format dataset."
+  },
+  {
+   "ref": "shivamb/underwater-trash-detection",
+   "title": "Underwater Trash Detection",
+   "size_mb": 181.7,
+   "usability": 0.875,
+   "subtitle": "A Bounding Box Labeled Dataset of Underwater Trash"
+  },
+  {
+   "ref": "julesh7/taco-dataset-revised-230-imgs",
+   "title": "TACO Dataset Revised 230 imgs",
+   "size_mb": 186.3,
+   "usability": 0.6875,
+   "subtitle": "Modified original TACO dataset (tacodataset.org) for classification tasks."
+  },
+  {
+   "ref": "akshatsng/underwater-dataset-for-8-classes-with-label",
+   "title": "Underwater Dataset",
+   "size_mb": 29.6,
+   "usability": 0.8125,
+   "subtitle": "Bounding box annotated underwater image dataset with 7 classes."
+  },
+  {
+   "ref": "simuletic/cctv-smoke-and-fire-emergency-detection-dataset",
+   "title": "CCTV Smoke & Fire Emergency Detection Dataset",
+   "size_mb": 339.0,
+   "usability": 0.9375,
+   "subtitle": "Early-stage fire and smoke detection dataset in public areas."
+  },
+  {
+   "ref": "meruvakodandasuraj/sonar-dataset-underwater-object-classification",
+   "title": "Sonar Dataset, Underwater Object Classification",
+   "size_mb": 2.0,
+   "usability": 1.0,
+   "subtitle": "sonar frequency and echo signal features for multi-class underwater ob"
+  }
+ ],
+ "faded_signage": [
+  {
+   "ref": "pkdarabi/cardetection",
+   "title": "Traffic Signs Detection",
+   "size_mb": 104.7,
+   "usability": 1.0,
+   "subtitle": "Signs Detection For Self-Driving Cars (Computer Vision Project)"
+  },
+  {
+   "ref": "icebearogo/german-traffic-sign-detection-gtsdb-dataset",
+   "title": "German Traffic Sign Detection (GTSDB )Dataset",
+   "size_mb": 245.8,
+   "usability": 1.0,
+   "subtitle": "Simplified version of GTSDB dataset with all the images & labels for easy use!"
+  },
+  {
+   "ref": "ahemateja19bec1025/trafficsignlocalizationdetectionyoloannotated",
+   "title": "Traffic-Sign-Localization-Detection-YOLO-Annotated",
+   "size_mb": 46.6,
+   "usability": 1.0,
+   "subtitle": "\ud83d\udea6\ud83d\udea8\ud83d\ude97\ud83d\udea7\ud83d\udea6\ud83d\udea8\ud83d\ude97\ud83d\udea7\ud83d\udea6\ud83d\udea8\ud83d\ude97\ud83d\udea7"
+  },
+  {
+   "ref": "raduoprea/traffic-signs",
+   "title": "Traffic Signs Detection",
+   "size_mb": 465.1,
+   "usability": 0.875,
+   "subtitle": "4.5k images, 8k annotations, 55 classes, 640x640 px - google maps images"
+  },
+  {
+   "ref": "safabouguezzi/german-traffic-sign-detection-benchmark-gtsdb",
+   "title": "GTSDB - German Traffic Sign Detection Benchmark ",
+   "size_mb": 1729.4,
+   "usability": 0.5625,
+   "subtitle": ""
+  },
+  {
+   "ref": "guisahanes/traffic-violation-detection-dataset",
+   "title": "Traffic Violation Detection Dataset",
+   "size_mb": 192.1,
+   "usability": 1.0,
+   "subtitle": "Custom YOLO dataset for traffic violation detection | 23 classes | ROI-cropped "
+  },
+  {
+   "ref": "valentynsichkar/traffic-signs-dataset-in-yolo-format",
+   "title": "Traffic Signs Dataset in YOLO format",
+   "size_mb": 262.2,
+   "usability": 0.9375,
+   "subtitle": "Annotations of bounding boxes in txt files next to every image"
+  },
+  {
+   "ref": "mohamedgobara/26-class-object-detection-dataset",
+   "title": "26 Class Object detection dataset",
+   "size_mb": 1081.7,
+   "usability": 0.875,
+   "subtitle": "Comprehensive 26-Class Object Detection Dataset for Urban Scenes"
+  },
+  {
+   "ref": "mmontiel/tiny-lisa-traffic-sign-detection-dataset",
+   "title": "Tiny LISA Traffic Sign Detection Dataset",
+   "size_mb": 306.5,
+   "usability": 0.5882353,
+   "subtitle": "900 samples and 9 Traffic Sign Classes"
+  },
+  {
+   "ref": "harbhajansingh21/german-traffic-sign-dataset",
+   "title": "German Traffic Sign Dataset",
+   "size_mb": 123.6,
+   "usability": 1.0,
+   "subtitle": "GTSRB Dataset: Comprehensive Resource for Autonomous Vehicle Visual Recognition"
+  },
+  {
+   "ref": "fhabibimoghaddam/road-sign-recognition",
+   "title": "Road Sign Recognition",
+   "size_mb": 48.5,
+   "usability": 0.875,
+   "subtitle": "Annotated Dataset for Traffic Sign Recognition"
+  },
+  {
+   "ref": "dmitryyemelyanov/chinese-traffic-signs",
+   "title": "Chinese Traffic Signs",
+   "size_mb": 193.7,
+   "usability": 0.9411765,
+   "subtitle": "5998 annotated traffic sign images of 58 categories"
+  },
+  {
+   "ref": "maitam/vietnamese-traffic-signs",
+   "title": "Vietnam Traffic Signs",
+   "size_mb": 793.4,
+   "usability": 0.75,
+   "subtitle": ""
+  },
+  {
+   "ref": "khushikyad001/ai-and-computer-vision-dataset",
+   "title": "AI & Computer Vision Dataset",
+   "size_mb": 0.1,
+   "usability": 1.0,
+   "subtitle": "A dataset for AI-driven handwriting recognition, multilingual sign translation."
+  },
+  {
+   "ref": "tuanai/traffic-signs-dataset",
+   "title": "Traffic-Signs-Dataset",
+   "size_mb": 243.6,
+   "usability": 0.8235294,
+   "subtitle": "Unlock Road Safety: Explore 52 Types of Traffic Signs in High-Resolution Imagery"
+  },
+  {
+   "ref": "nezahatkk/traffic-signs-in-turkiye",
+   "title": "TRAFFIC SIGNS IN TURKIYE",
+   "size_mb": 1604.0,
+   "usability": 1.0,
+   "subtitle": "Turkiyedeki trafik isaretleri icin cok genis skaynaklar\u0131n harmanlandigi veriseti"
+  },
+  {
+   "ref": "mushfikurrahman0001/brsddbangladeshi-road-sign-detection-dataset",
+   "title": "Bangladeshi Road Sign Detection Dataset(BRSDD)",
+   "size_mb": 1153.8,
+   "usability": 0.8125,
+   "subtitle": "Annotated Dataset for Bangladeshi Road Sign Detection Across 29 Classes"
+  },
+  {
+   "ref": "mohadesehatyabi/iranian-traffic-sign-dataset",
+   "title": "Iranian Traffic Sign Dataset",
+   "size_mb": 730.5,
+   "usability": 0.7647059,
+   "subtitle": "Collection of images with labels for Object Detection"
+  },
+  {
+   "ref": "sairupeshl/german-traffic-signs",
+   "title": "German Traffic Signs",
+   "size_mb": 187.8,
+   "usability": 1.0,
+   "subtitle": "GTSRB - German Traffic Sign Recognition Benchmark"
+  },
+  {
+   "ref": "oktayrdeki/traffic-accidents",
+   "title": "Traffic Accidents",
+   "size_mb": 4.9,
+   "usability": 1.0,
+   "subtitle": "Traffic Crashes Dataset"
+  },
+  {
+   "ref": "abhishek14398/heart-disease-classification",
+   "title": "Heart Disease Classification ",
+   "size_mb": 0.0,
+   "usability": 1.0,
+   "subtitle": "Classification dataset for heart diseases prediction"
+  },
+  {
+   "ref": "programmerrdai/road-issues-detection-dataset",
+   "title": "Road Issues Detection Dataset",
+   "size_mb": 500.4,
+   "usability": 0.75,
+   "subtitle": "9,660 High-Resolution Images for Road Infrastructure Monitoring"
+  },
+  {
+   "ref": "rounak041993/traffic-violations-in-maryland-county",
+   "title": "Traffic Violations in Maryland County",
+   "size_mb": 62.8,
+   "usability": 0.7647059,
+   "subtitle": "Complete set of traffic violation events from 2012 - 2018"
+  },
+  {
+   "ref": "cybersimar08/radar-based-vital-sign-monitoring",
+   "title": "Radar-based vital sign monitoring",
+   "size_mb": 2.4,
+   "usability": 0.7058824,
+   "subtitle": "Baby vital sign using FMCW Radars"
+  },
+  {
+   "ref": "timnosov/significant-earthquakes-with-damage",
+   "title": "Significant Earthquakes with Damage",
+   "size_mb": 0.4,
+   "usability": 0.23529412,
+   "subtitle": ""
+  },
+  {
+   "ref": "arshmankhalid/ml-ready-diabetes-dataset",
+   "title": "ML Ready Diabetes Dataset \ud83d\udcca",
+   "size_mb": 0.0,
+   "usability": 0.8235294,
+   "subtitle": "ML Ready Diabetes Dataset empowers data-driven insights for better diabetes care"
+  },
+  {
+   "ref": "mirzahasnine/loan-data-set",
+   "title": "Loan Data Set",
+   "size_mb": 0.0,
+   "usability": 0.9411765,
+   "subtitle": "Loan Approval Data Set"
+  },
+  {
+   "ref": "yararami/damaged-signs",
+   "title": "damaged signs",
+   "size_mb": 87.4,
+   "usability": 0.125,
+   "subtitle": ""
+  },
+  {
+   "ref": "namigabbasov/diabetic-retinopathy-debrecen",
+   "title": "Diabetic Retinopathy Debrecen",
+   "size_mb": 0.0,
+   "usability": 1.0,
+   "subtitle": "Tabular dataset extracted from Messidor Image Set"
+  }
+ ],
+ "illegal_parking": [
+  {
+   "ref": "arcgisopendata/dc-parking-violations",
+   "title": "Parking Violations, December 2015",
+   "size_mb": 6.0,
+   "usability": 0.5882353,
+   "subtitle": "Parking citation locations in the District of Columbia"
+  },
+  {
+   "ref": "new-york-city/ny-parking-violations-issued",
+   "title": "NY Parking Violations Issued",
+   "size_mb": 984.3,
+   "usability": 0.7058824,
+   "subtitle": "Explore Open Data from New York City"
+  },
+  {
+   "ref": "rounak041993/traffic-violations-in-maryland-county",
+   "title": "Traffic Violations in Maryland County",
+   "size_mb": 62.8,
+   "usability": 0.7647059,
+   "subtitle": "Complete set of traffic violation events from 2012 - 2018"
+  },
+  {
+   "ref": "davinascimento/nyc-parking-violations-issued",
+   "title": "NYC Parking Violations Issued",
+   "size_mb": 390.9,
+   "usability": 0.9411765,
+   "subtitle": "Parking Violations Issuance dataset of the city of New York"
+  },
+  {
+   "ref": "felix4guti/traffic-violations-in-usa",
+   "title": "Traffic Violations in USA",
+   "size_mb": 50.8,
+   "usability": 0.7058824,
+   "subtitle": "Traffic Violations in USA "
+  },
+  {
+   "ref": "shayanshahid997/parking-violations-issued-from-january-may-2024",
+   "title": "Parking Violations Issued from January-May 2024",
+   "size_mb": 13.2,
+   "usability": 0.9411765,
+   "subtitle": "Spotlight on Enforcement: Parking Violations from January to May 2024"
+  },
+  {
+   "ref": "new-york-city/ny-open-parking-and-camera-violations",
+   "title": "NY Open Parking and Camera Violations",
+   "size_mb": 1422.0,
+   "usability": 0.64705884,
+   "subtitle": "From New York City Open Data"
+  },
+  {
+   "ref": "new-york-city/ny-dof-parking-violation-codes",
+   "title": "NY DOF Parking Violation Codes",
+   "size_mb": 0.0,
+   "usability": 0.7647059,
+   "subtitle": "Explore Open Data from New York City"
+  },
+  {
+   "ref": "permida/photovideofixationtransportsystemmoscow",
+   "title": "photo-video-fixation-transport-system-Moscow",
+   "size_mb": 0.1,
+   "usability": 0.9411765,
+   "subtitle": "photo-video-fixation of traffic rules intellectual transport system of Moscow"
+  },
+  {
+   "ref": "jordanravins/nyc-parking-violations",
+   "title": "NYC_Parking_Violations",
+   "size_mb": 68.5,
+   "usability": 0.85294116,
+   "subtitle": "New York City Parking Violation Data Analysis  2017-2020"
+  },
+  {
+   "ref": "abtinzandi/obstacle-detection-dataset",
+   "title": "Obstacle Detection Dataset",
+   "size_mb": 1514.0,
+   "usability": 0.9411765,
+   "subtitle": "YOLO obstacle-detection dataset for indoor/outdoor enviroments and street scenes"
+  },
+  {
+   "ref": "amineipad/urbansound8k-csv",
+   "title": "UrbanSound8K_CSV",
+   "size_mb": 0.1,
+   "usability": 1.0,
+   "subtitle": "Urban Sound 8K Dataset but only the CSV"
+  },
+  {
+   "ref": "lazyrac00n/speech-activity-detection-datasets",
+   "title": "Speech activity detection datasets",
+   "size_mb": 144.4,
+   "usability": 0.75,
+   "subtitle": "Audio and labels for speech activity detection tasks"
+  },
+  {
+   "ref": "owm4096/street-objects",
+   "title": "Street Objects Classification",
+   "size_mb": 161.4,
+   "usability": 0.9411765,
+   "subtitle": "Images of cars, pedestrians, bicycles, traffic lights, stop signs and more..."
+  },
+  {
+   "ref": "orvile/urban-sound-8k-tabular-form",
+   "title": "Urban Sound 8k (Tabular)",
+   "size_mb": 1.8,
+   "usability": 0.9411765,
+   "subtitle": "A Processed Version of the UrbanSound8K Dataset for Machine Learning Application"
+  },
+  {
+   "ref": "ahsanneural/karachi-crime",
+   "title": "Karachi Crime",
+   "size_mb": 2.4,
+   "usability": 0.9411765,
+   "subtitle": " Karachi crime records for geospatial analysis, EDA, and machine learning"
+  },
+  {
+   "ref": "muftirestumahesa/obstacles-in-public-spaces-for-dist-yolo",
+   "title": "Obstacles in Public Spaces for Dist-YOLO",
+   "size_mb": 275.0,
+   "usability": 0.9375,
+   "subtitle": "Annotated Images of Obstacles for Object Detection in Public Spaces"
+  },
+  {
+   "ref": "muftirestumahesa/image-obstacle-in-public-spaces",
+   "title": "Image Obstacle in Public Spaces",
+   "size_mb": 1996.8,
+   "usability": 0.9375,
+   "subtitle": "Annotated Images of Obstacles in Public Spaces"
+  },
+  {
+   "ref": "mohadesehatyabi/iranian-traffic-sign-dataset",
+   "title": "Iranian Traffic Sign Dataset",
+   "size_mb": 730.5,
+   "usability": 0.7647059,
+   "subtitle": "Collection of images with labels for Object Detection"
+  },
+  {
+   "ref": "axondata/background-noise-detection-dataset",
+   "title": "Background Noise Detection Dataset",
+   "size_mb": 132.0,
+   "usability": 0.9375,
+   "subtitle": "50+ hours of real-world urban environmental background noise"
+  },
+  {
+   "ref": "trainingdatapro/parking-space-detection-dataset",
+   "title": "Parking Space Detection & Classification Dataset",
+   "size_mb": 44.4,
+   "usability": 1.0,
+   "subtitle": "Object Detection dataset and classified parking spaces"
+  },
+  {
+   "ref": "vivekattri/global-ev-charging-stations-dataset",
+   "title": "Global EV Charging Stations Dataset",
+   "size_mb": 0.2,
+   "usability": 1.0,
+   "subtitle": "A comprehensive dataset of EV charging stations worldwide, including station det"
+  },
+  {
+   "ref": "trainingdatapro/roads-segmentation-dataset",
+   "title": "Road Segmentation Dataset - vehicle dataset",
+   "size_mb": 16.7,
+   "usability": 1.0,
+   "subtitle": "Roads images captured through DVRs - vehicle dataset"
+  },
+  {
+   "ref": "ahmedlahlou/accidents-in-france-from-2005-to-2016",
+   "title": "Accidents in France from 2005 to 2016",
+   "size_mb": 42.1,
+   "usability": 0.7058824,
+   "subtitle": "Help prevent accidents."
+  },
+  {
+   "ref": "saisirishan/indian-vehicle-dataset",
+   "title": "Indian vehicle license plate dataset",
+   "size_mb": 186.7,
+   "usability": 0.875,
+   "subtitle": "Indian vehicle dataset for license plate detection and recognition"
+  },
+  {
+   "ref": "bartoszpieniak/poland-cars-for-sale-dataset",
+   "title": "Poland cars for sale dataset (200k adverts)",
+   "size_mb": 18.6,
+   "usability": 1.0,
+   "subtitle": "Over 200,000 adverts scraped from one of the poland's most popular car ads site."
+  },
+  {
+   "ref": "art12400/2019-autonomous-vehicle-disengagement-reports",
+   "title": "2019 Autonomous Vehicle Disengagement Reports",
+   "size_mb": 0.1,
+   "usability": 1.0,
+   "subtitle": "Explore Shortcomings of Current Generation Self-Driving Cars"
+  },
+  {
+   "ref": "ziya07/smart-mobility-traffic-dataset",
+   "title": "Smart Mobility Traffic Dataset",
+   "size_mb": 0.4,
+   "usability": 0.88235295,
+   "subtitle": "Cyber-Physical & Social Network Data for Intelligent Traffic Management"
+  },
+  {
+   "ref": "programmerrdai/road-issues-detection-dataset",
+   "title": "Road Issues Detection Dataset",
+   "size_mb": 500.4,
+   "usability": 0.75,
+   "subtitle": "9,660 High-Resolution Images for Road Infrastructure Monitoring"
+  }
+ ]
+}

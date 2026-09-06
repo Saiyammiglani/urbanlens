@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Marker, ZoomControl, useMap } from "react-leaflet";
 import L from "leaflet";
 import { fetchIncidents, fetchStats, fetchZones, transition } from "./lib/api.js";
+import { realtimeAvailable, subscribeRealtime } from "./lib/realtime.js";
 import {
   LABEL_META,
   labelColor,
@@ -15,7 +16,8 @@ import SmartRoute from "./components/SmartRoute.jsx";
 import StatsBar from "./components/StatsBar.jsx";
 import Uploads from "./components/Uploads.jsx";
 import LiveCam from "./components/LiveCam.jsx";
-import FleetStrip from "./components/FleetStrip.jsx";
+import TrafficView from "./components/TrafficView.jsx";
+import FleetPanel from "./components/FleetPanel.jsx";
 
 const STATUSES = ["new", "confirmed", "assigned", "in_progress", "resolved", "rejected"];
 
@@ -25,14 +27,15 @@ const CITIES = {
   Bengaluru: [12.9550, 77.6150],
 };
 
-/* ---------- view rail definition (real views only) ---------- */
+/* ---------- view rail definition ---------- */
 
 const VIEWS = [
-  { id: "overview", label: "Live Map" },
+  { id: "overview",  label: "Live Map"  },
   { id: "incidents", label: "Incidents" },
+  { id: "traffic",   label: "Traffic"   },
   { id: "analytics", label: "Analytics" },
-  { id: "uploads", label: "Media" },
-  { id: "livecam", label: "Live Cam" },
+  { id: "uploads",   label: "Media"     },
+  { id: "livecam",   label: "Live Cam"  },
 ];
 
 const RAIL_ICONS = {
@@ -48,6 +51,14 @@ const RAIL_ICONS = {
       <circle cx="3.5" cy="6" r="1" fill="currentColor" />
       <circle cx="3.5" cy="12" r="1" fill="currentColor" />
       <circle cx="3.5" cy="18" r="1" fill="currentColor" />
+    </svg>
+  ),
+  traffic: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 17h3l2-4 3 2 3-6 3 3h2" />
+      <circle cx="6" cy="6" r="1.4" />
+      <circle cx="12" cy="4.5" r="1.4" />
+      <circle cx="18" cy="7" r="1.4" />
     </svg>
   ),
   analytics: (
@@ -72,14 +83,12 @@ const RAIL_ICONS = {
 
 /* ---------- small helpers ---------- */
 
-/** Expose map instance for tests/debug (window.__map). */
 function MapRef() {
   const map = useMap();
   useEffect(() => { window.__map = map; }, [map]);
   return null;
 }
 
-/** Recenter map when city changes. */
 function CityView({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -88,7 +97,6 @@ function CityView({ center }) {
   return null;
 }
 
-/** Pulsing ripple marker for freshly-arrived incidents. */
 function pingIcon(color) {
   return L.divIcon({
     className: "ping-wrapper",
@@ -97,7 +105,6 @@ function pingIcon(color) {
   });
 }
 
-/** Live clock in the header. */
 function Clock() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -111,7 +118,6 @@ function Clock() {
   );
 }
 
-/** "Updated Xs ago" from the real last successful sync. */
 function UpdatedAgo({ lastSync }) {
   const [, tick] = useState(0);
   useEffect(() => {
@@ -143,14 +149,12 @@ export default function App() {
   const [view, setView] = useState("overview");
   const [lastSync, setLastSync] = useState(null);
   const prevIds = useRef(new Set());
-  const dataSig = useRef("");        // filter context of the current incidents dataset
-  const lastPingSig = useRef(null);  // filter context when prevIds was last written
+  const dataSig = useRef("");
+  const lastPingSig = useRef(null);
   const [pingIds, setPingIds] = useState(new Set());
   const firstLoad = useRef(true);
 
   const refresh = async () => {
-    // filter context of this fetch — travels with the data so the ping
-    // effect can tell "new detections" apart from "same data, new filter"
     const sig = `${statusFilter}|${labelFilter}|${minSeverity}`;
     try {
       const [incs, st, zs] = await Promise.all([
@@ -158,7 +162,7 @@ export default function App() {
           status: statusFilter || undefined,
           label: labelFilter || undefined,
           min_severity: minSeverity,
-          limit: 1000, // backend caps at 200 by default — never silently truncate
+          limit: 1000,
         }),
         fetchStats(),
         fetchZones(),
@@ -190,7 +194,23 @@ export default function App() {
     return () => clearInterval(id);
   }, [statusFilter, labelFilter, minSeverity]);
 
-  // keep selected card fresh
+  // Supabase Realtime: instant refresh on new rows (free tier).
+  // Falls back silently to the 4 s poll above if env vars are unset.
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  useEffect(() => {
+    if (!realtimeAvailable()) return;
+    let pending = null;
+    const unsub = subscribeRealtime(
+      ["incidents", "observations", "traffic_alerts", "traffic_segments"],
+      () => {
+        if (pending) return; // debounce bursts from one bus
+        pending = setTimeout(() => { pending = null; refreshRef.current(); }, 400);
+      }
+    );
+    return () => { clearTimeout(pending); unsub(); };
+  }, []);
+
   useEffect(() => {
     if (selected) {
       const cur = incidents.find((i) => i.id === selected.id);
@@ -198,16 +218,13 @@ export default function App() {
     }
   }, [incidents]);
 
-  // detect brand-new incidents → ripple ping on the map for 8 s
-  // A ping only fires when the dataset's filter context is UNCHANGED — a
-  // filter switch re-diffs the set and must never ripple old incidents.
   useEffect(() => {
     const ids = new Set(incidents.map((i) => i.id));
     const fresh = [...ids].filter((id) => !prevIds.current.has(id));
     const sigChanged = lastPingSig.current !== dataSig.current;
     lastPingSig.current = dataSig.current;
     prevIds.current = ids;
-    if (!sigChanged && fresh.length && prevIds.current.size > fresh.length) { // skip initial fill
+    if (!sigChanged && fresh.length && prevIds.current.size > fresh.length) {
       setPingIds((p) => new Set([...p, ...fresh]));
       const t = setTimeout(() => {
         setPingIds((p) => {
@@ -239,11 +256,9 @@ export default function App() {
 
   const mapLayers = (
     <>
-      {/* CARTO dark basemap: keyless, zoom 0-20 (ESRI Dark Gray stops at 16
-          and serves "map data not available" placeholders when zoomed in) */}
       <TileLayer
         attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_2z8p_1_b9474e4f226b08a01198d7b1"
         maxZoom={19}
       />
       <ZoomControl position="bottomright" />
@@ -285,7 +300,6 @@ export default function App() {
           </CircleMarker>
         );
       })}
-      {/* ripple pings for new detections */}
       {incidents
         .filter((inc) => pingIds.has(inc.id))
         .map((inc) => (
@@ -302,7 +316,7 @@ export default function App() {
     </>
   );
 
-  /* ---------- filter toolbar (floating on map) ---------- */
+  /* ---------- filter toolbar ---------- */
 
   const toolbar = (
     <div className="toolbar">
@@ -335,7 +349,7 @@ export default function App() {
     </div>
   );
 
-  /* ---------- legend (floating, bottom-left) ---------- */
+  /* ---------- legend ---------- */
 
   const legend = (
     <div className="legend">
@@ -357,7 +371,12 @@ export default function App() {
     </div>
   );
 
-  /* ---------- analytics view (derived from existing data only) ---------- */
+  /* ---------- analytics ---------- */
+
+  const STATUS_COLORS = {
+    new: "#22d3ee", confirmed: "#60a5fa", assigned: "#a78bfa",
+    in_progress: "#fbbf24", resolved: "#34d399", rejected: "#6b7280",
+  };
 
   const analytics = stats ? (
     <div className="analytics-grid">
@@ -366,12 +385,13 @@ export default function App() {
         {STATUSES.map((s) => {
           const n = incidents.filter((i) => i.status === s).length;
           const max = Math.max(1, ...STATUSES.map((st) => incidents.filter((i) => i.status === st).length));
-          const colors = { new: "#22d3ee", confirmed: "#60a5fa", assigned: "#a855f7", in_progress: "#fbbf24", resolved: "#34d399", rejected: "#6b7280" };
           return (
             <div className="an-row" key={s}>
               <span className="an-name">{prettyLabel(s)}</span>
-              <div className="an-track"><div className="an-fill" style={{ width: `${(n / max) * 100}%`, background: colors[s] }} /></div>
-              <span className="an-count">{n}</span>
+              <div className="an-track">
+                <div className="an-fill" style={{ width: `${(n / max) * 100}%`, background: STATUS_COLORS[s] }} />
+              </div>
+              <span className="an-count" style={{ color: STATUS_COLORS[s] }}>{n}</span>
             </div>
           );
         })}
@@ -381,7 +401,9 @@ export default function App() {
         {Object.entries(stats.by_label).sort((a, b) => b[1] - a[1]).map(([l, n]) => (
           <div className="an-row" key={l}>
             <span className="an-name">{labelIcon(l)} {prettyLabel(l)}</span>
-            <div className="an-track"><div className="an-fill" style={{ width: `${(n / Math.max(...Object.values(stats.by_label))) * 100}%`, background: labelColor(l) }} /></div>
+            <div className="an-track">
+              <div className="an-fill" style={{ width: `${(n / Math.max(...Object.values(stats.by_label))) * 100}%`, background: labelColor(l) }} />
+            </div>
             <span className="an-count">{n}</span>
           </div>
         ))}
@@ -394,8 +416,16 @@ export default function App() {
             .slice(0, 6)
             .map((i) => (
               <div className="an-item" key={i.id}>
-                <span className="legend-dot" style={{ background: labelColor(i.label) }} />
-                <b style={{ fontSize: 12.5 }}>{prettyLabel(i.label)}</b>
+                <span
+                  className="legend-dot"
+                  style={{
+                    background: labelColor(i.label),
+                    borderRadius: "50%",
+                    width: 10, height: 10, flexShrink: 0,
+                    boxShadow: `0 0 6px ${labelColor(i.label)}`,
+                  }}
+                />
+                <b style={{ fontSize: 12, flex: 1 }}>{prettyLabel(i.label)}</b>
                 <span className="meta-item">sev {i.severity}/10</span>
                 <span className="meta-item">{Math.round(i.confidence * 100)}%</span>
                 <span className="meta-item">{i.assigned_dept || "unassigned"}</span>
@@ -406,29 +436,42 @@ export default function App() {
     </div>
   ) : null;
 
+  /* ---------- page title helper ---------- */
+
+  const PAGE_TITLES = {
+    overview:  { title: "Urban Intelligence",    sub: <>AI-powered city monitoring · <b>{city}</b> · {incidents.length} incidents on map</> },
+    incidents: { title: "Incident Queue",        sub: <>Full queue · {incidents.length} shown · sorted by severity</> },
+    traffic:   { title: "Traffic Intelligence",  sub: <>Vehicle density · congestion heat · bottlenecks · ANPR &amp; pedestrian safety</> },
+    analytics: { title: "Analytics",             sub: <>Live breakdown of the current filter set</> },
+    uploads:   { title: "Media Upload",          sub: <>Drop route footage — the fleet agent processes it end-to-end</> },
+    livecam:   { title: "Live Camera",           sub: <>Real-time detection from a live camera · auto-reports to the map</> },
+  };
+
+  const isFixedView = view === "overview" || view === "traffic";
+
   /* ============================================================
      RENDER
      ============================================================ */
 
   return (
     <div className="app">
-      {/* ===== Top navigation ===== */}
+      {/* ===== Topbar ===== */}
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">U</div>
-          <div>
+          <div className="brand-text">
             <div className="brand-name">UrbanLens</div>
             <div className="brand-sub">Mobile Urban Intelligence · BEL</div>
           </div>
         </div>
 
         <div className="topbar-center">
-          <div className={`live-indicator ${error ? "offline" : ""}`}>
+          <div className={`live-pill ${error ? "offline" : ""}`}>
             <span className="live-dot" />
             {error ? "Backend Offline" : "Live"}
             {!error && lastSync && (
               <>
-                <span aria-hidden="true">·</span>
+                <span className="live-sep" aria-hidden="true">·</span>
                 <UpdatedAgo lastSync={lastSync} />
               </>
             )}
@@ -458,90 +501,100 @@ export default function App() {
           <div className="rail-spacer" />
         </nav>
 
-        <div className={`main ${view === "overview" ? "fixed-view" : "scrollable-view"}`}>
-          {/* ===== Page header ===== */}
-          <div className="pagehead">
-            <div>
-              <h1 className="pagehead-title">
-                {view === "overview" ? "Urban Intelligence" :
-                 view === "incidents" ? "Incident Queue" :
-                 view === "analytics" ? "Analytics" :
-                 view === "uploads" ? "Media Upload" : "Live Camera"}
-              </h1>
-              <div className="pagehead-sub">
-                {view === "overview" && (
-                  <>AI-powered city monitoring · <b>{city}</b> · {incidents.length} incidents on map</>
-                )}
-                {view === "incidents" && <>Full queue · {incidents.length} shown · sorted by severity</>}
-                {view === "analytics" && <>Live breakdown of the current filter set</>}
-                {view === "uploads" && <>Drop route footage — the fleet agent processes it end-to-end</>}
-                {view === "livecam" && <>Real-time detection from a live camera · auto-reports to the map</>}
+        <main className={`main ${isFixedView ? "fixed-view" : "scrollable-view"}`}>
+          <div className="main-inner">
+            {/* ===== Page header ===== */}
+            <div className="pagehead">
+              <div>
+                <h1 className="pagehead-title">{PAGE_TITLES[view]?.title}</h1>
+                <div className="pagehead-sub">{PAGE_TITLES[view]?.sub}</div>
+              </div>
+              <div className="pagehead-actions">
+                <button className="btn" onClick={refresh} title="Refresh data">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  Refresh
+                </button>
               </div>
             </div>
-            <div className="pagehead-actions">
-              <button className="btn" onClick={refresh}>⟳ Refresh</button>
-            </div>
-          </div>
 
-          {/* ===== Metric band ===== */}
-          <StatsBar stats={stats} />
+            {/* ===== Metric band — hidden on traffic (has its own overlay stats) ===== */}
+            {view !== "traffic" && <StatsBar stats={stats} />}
 
-          {/* ===== Error banner ===== */}
-          {error && (
-            <div className="error-banner" role="alert">
-              <span className="error-banner-icon">⚠</span>
-              <div className="error-banner-body">
-                <b>Can't reach the UrbanLens backend</b>
-                <span>Live fleet updates are paused. Retrying automatically every 4 s.</span>
+            {/* ===== Error banner ===== */}
+            {error && (
+              <div className="error-banner" role="alert">
+                <span className="error-banner-icon">⚠</span>
+                <div className="error-banner-body">
+                  <b>Can't reach the UrbanLens backend</b>
+                  <span>Live fleet updates are paused. Retrying automatically every 4 s.</span>
+                </div>
+                <button className="btn" onClick={refresh}>Retry now</button>
               </div>
-              <button className="btn" onClick={refresh}>Retry now</button>
-            </div>
-          )}
+            )}
 
-          {/* ===== VIEWS ===== */}
+            {/* ===== VIEWS ===== */}
 
-          {view === "overview" && (
-            <div className="workspace">
-              {/* Map card */}
-              <div className="map-card">
-                <FleetStrip />
-                <div className="map-head">
-                  <div className="map-head-left">
-                    <span className="map-head-title">
-                      Live Monitoring · <span className="map-head-city">{city}</span>
+            {view === "overview" && (
+              <div className="workspace overview-workspace">
+
+                {/* ── Left: Fleet Panel ── */}
+                <FleetPanel />
+
+                {/* ── Center: Map ── */}
+                <div className="map-card">
+                  <div className="map-head">
+                    <div className="map-head-left">
+                      <span className="map-head-title">
+                        Live Monitoring · <span className="map-head-city">{city}</span>
+                      </span>
+                    </div>
+                    <span className="map-head-dotcount">
+                      ● {incidents.length} on map
                     </span>
                   </div>
-                  <span className="map-head-dotcount">
-                    ● {incidents.length} detections on map
-                  </span>
-                </div>
-                <div className="map-body">
-                  <MapContainer center={[28.6139, 77.209]} zoom={12} minZoom={4} maxZoom={19} scrollWheelZoom zoomControl={false}>
-                    {mapLayers}
-                  </MapContainer>
-
-                  {toolbar}
-                  {legend}
-
-                  {incidents.length === 0 && !error && !loading && (
-                    <div className="map-empty">
-                      <div className="map-empty-card">
-                        <div className="icon">🛰️</div>
-                        Waiting for fleet detections…
+                  <div className="map-body">
+                    <MapContainer center={[28.6139, 77.209]} zoom={12} minZoom={4} maxZoom={19} scrollWheelZoom zoomControl={false}>
+                      {mapLayers}
+                    </MapContainer>
+                    {toolbar}
+                    {legend}
+                    {incidents.length === 0 && !error && !loading && (
+                      <div className="map-empty">
+                        <div className="map-empty-card">
+                          <div className="icon">🛰️</div>
+                          Waiting for fleet detections…
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                </div>
 
-                  {/* Detail drawer */}
-                  <IncidentDetail
-                    incident={selected}
-                    onClose={() => setSelected(null)}
-                    onAct={act}
-                  />
+                {/* ── Right: Incident Queue + Evidence Panel ── */}
+                <div className="right-column">
+                  {selected ? (
+                    <IncidentDetail
+                      incident={selected}
+                      onClose={() => setSelected(null)}
+                      onAct={act}
+                    />
+                  ) : (
+                    <IncidentFeed
+                      incidents={incidents}
+                      loading={loading}
+                      selected={selected}
+                      onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
+                      onAct={act}
+                      onHover={setHovered}
+                    />
+                  )}
                 </div>
               </div>
+            )}
 
-              {/* Incident panel */}
+            {view === "incidents" && (
               <IncidentFeed
                 incidents={incidents}
                 loading={loading}
@@ -549,28 +602,19 @@ export default function App() {
                 onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
                 onAct={act}
                 onHover={setHovered}
+                variant="full"
               />
-            </div>
-          )}
+            )}
 
-          {view === "incidents" && (
-            <IncidentFeed
-              incidents={incidents}
-              loading={loading}
-              selected={selected}
-              onSelect={(inc) => setSelected(selected?.id === inc.id ? null : inc)}
-              onAct={act}
-              onHover={setHovered}
-              variant="full"
-            />
-          )}
+            {view === "analytics" && analytics}
 
-          {view === "analytics" && analytics}
+            {view === "traffic" && <TrafficView city={city} />}
 
-          {view === "uploads" && <Uploads onToast={showToast} />}
+            {view === "uploads" && <Uploads onToast={showToast} />}
 
-          {view === "livecam" && <LiveCam onToast={showToast} />}
-        </div>
+            {view === "livecam" && <LiveCam onToast={showToast} />}
+          </div>
+        </main>
       </div>
 
       {/* ===== Toast ===== */}

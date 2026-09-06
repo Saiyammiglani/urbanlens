@@ -1,17 +1,27 @@
-"""Prepare v3 dataset: v2 + hard negatives mined from our own street footage.
+"""Prepare v3 dataset: v2 + hard negatives + new real-world Kaggle datasets.
 
 The v2 model's worst real-world failure: leaves/roadside clutter detected as
 garbage_dump (fires 0.40-0.76 on clutter, 0.80-0.95 on real dumps).
 
-Fix strategy — hard-negative mining:
-  * Sample frames from edge/media/*.mp4 (Indian street footage, domain-matched)
-  * Keep frames where the CURRENT model fires only weakly (all dets < 0.65)
-    -> these are exactly the "leaves/clutter" frames that confuse the model
-  * Add them as background images (image with an EMPTY label file)
-  * Frames with stronger detections are EXCLUDED so no real object gets
-    taught as background.
+Fix strategy — three data additions:
+1. Hard-negative mining (leaves/clutter frames from OUR street footage):
+   frames from edge/media/*.mp4 where the current model fires weakly become
+   background images (empty label files).
+2. Kaggle real-world datasets (in datasets/kaggle/):
+   * roaddamage (sabidrahman/pothole-cracks-and-openmanhole):
+       YOLO train 2,236 imgs — class ids 0=pothole 1=crack 2=open_manhole;
+       106 empty-label negatives; classes/good_road = 100 negatives.
+   * garbage (viswaprakash1990/garbage-detection, YOLO, CC BY 4.0):
+       6 material classes -> garbage_dump (7,324 train / 2,098 valid).
+   * crack_neg (arunrk7/surface-crack-detection, CC BY):
+       6,000 Negative concrete images -> background negatives;
+       1,500 Positive crack patches -> crack (full-frame box).
+   * taco (datasets/kaggle/taco, CC BY 4.0): 18 litter classes -> garbage_dump.
+3. Horizontal flips of negatives (free 2x).
 
-Also adds: horizontal flips of the negatives (free 2x).
+v3 class map (nc=9): 0 pothole, 1 crack, 2 garbage_dump, 3 waterlogging,
+  4 open_manhole, 5 broken_streetlight, 6 roadside_debris, 7 faded_signage,
+  8 illegal_parking
 
 Output: dataset_v3/ (v2 images are HARD-LINKED, no extra disk space),
         dataset_v3.yaml
@@ -31,6 +41,10 @@ MEDIA = ROOT.parent / "edge" / "media"
 NEG_RAW_CONF = 0.65   # frame is a negative only if NO detection reaches this
 SAMPLE_EVERY_S = 1.0  # sample one frame per second of footage
 MAX_NEGS = 1200       # cap: negatives should stay ~5% of the dataset
+KAGGLE = ROOT / "datasets" / "kaggle"
+
+# v3 class indices
+C_POTHOLE, C_CRACK, C_GARBAGE, C_WATERLOG, C_MANHOLE = 0, 1, 2, 3, 4
 
 
 def find_model() -> Path:
@@ -117,6 +131,7 @@ def mine_negatives():
     print(f"[v3] mined {kept} hard negatives (+{len(negs)//2} flips)")
 
 
+
 def write_yaml():
     yaml_text = f"""path: {V3}
 train: images/train
@@ -132,6 +147,8 @@ names: ['pothole', 'crack', 'garbage_dump', 'waterlogging', 'open_manhole', 'bro
 if __name__ == "__main__":
     if not (ROOT / "dataset_v3.yaml").exists():
         clone_v2()
+        from integrate_kaggle_v3 import add_all
+        add_all()  # roaddamage + garbage + crack_neg + TACO (real-world Kaggle)
         mine_negatives()
         write_yaml()
         print("[v3] done — run: python train_v3.py")

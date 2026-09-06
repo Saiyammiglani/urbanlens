@@ -25,7 +25,7 @@ class HTTPSUploader:
                 self.url,
                 json={"observations": records[: self.batch_size]},
                 headers=self.headers,
-                timeout=10,
+                timeout=30,  # remote Supabase: big image batches can take >10s
             )
             if resp.status_code == 200:
                 remaining = records[self.batch_size:]

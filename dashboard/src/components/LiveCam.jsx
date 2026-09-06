@@ -131,10 +131,12 @@ export default function LiveCam({ onToast }) {
               {VEHICLE_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
             <input
-              className="search-input"
+              className="plate-input"
               value={vehicle}
               onChange={(e) => setVehicle(e.target.value)}
               title="Vehicle plate / fleet code reporting these detections"
+              placeholder="e.g. MH01BV4521"
+              style={{ width: 140 }}
             />
             <button className="btn btn-primary" onClick={start} disabled={starting}>
               {starting ? "Starting…" : "● Start live camera"}

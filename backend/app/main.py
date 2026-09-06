@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from . import incidents, ingest, media, routing, live, weather, aqi  # noqa: E402
+from . import incidents, ingest, media, routing, live, weather, aqi, traffic  # noqa: E402
 
 app.include_router(ingest.router)
 app.include_router(incidents.router)
@@ -39,6 +39,7 @@ app.include_router(media.router)
 app.include_router(live.router)
 app.include_router(weather.router)
 app.include_router(aqi.router)
+app.include_router(traffic.router)
 
 
 @app.get("/", tags=["health"])

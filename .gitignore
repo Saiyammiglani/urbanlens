@@ -27,6 +27,17 @@ ml/dataset_v2.yaml.local
 spool.jsonl
 
 # local-only docs
-docs/pitch.md
+/docs/
+!.gitignore
 # v3 training dataset (1.9GB — too large for git; rebuilt via prepare_dataset_v3.py)
 ml/dataset_v3/
+# additional Kaggle downloads for v3 (rebuilt via download; see ml/README)
+ml/datasets/kaggle/roaddamage/
+ml/datasets/kaggle/garbage/
+ml/datasets/kaggle/crack_neg/
+dashboard/.env
+
+# ANPR training data (multi-MB, Kaggle download)
+ml/anpr_data/
+ml/dataset_anpr/
+ml/traffic_segments.json

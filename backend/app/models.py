@@ -95,3 +95,40 @@ class IncidentUpdate(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     incident: Mapped[Incident] = relationship(back_populates="updates")
+
+
+class TrafficSegment(Base):
+    """Per-window traffic observation from a fleet vehicle: vehicle counts by
+    class (COCO detector on the bus camera), pedestrian presence, speed and a
+    0-100 congestion index."""
+    __tablename__ = "traffic_segments"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_uuid)
+    city: Mapped[str] = mapped_column(String(32), index=True)
+    route: Mapped[str] = mapped_column(String(64), index=True)
+    lat: Mapped[float] = mapped_column(Float, index=True)
+    lon: Mapped[float] = mapped_column(Float, index=True)
+    vehicle_counts: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON {car: n, ...}
+    total_vehicles: Mapped[int] = mapped_column(Integer, default=0)
+    persons: Mapped[int] = mapped_column(Integer, default=0)
+    speed_kmh: Mapped[float] = mapped_column(Float, default=0.0)
+    congestion: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    hour: Mapped[int] = mapped_column(Integer, default=12, index=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TrafficAlert(Base):
+    """Safety alert from the fleet: ANPR plate extraction (hit-and-run / rash
+    driving evidence), vulnerable pedestrian situations (school zones)."""
+    __tablename__ = "traffic_alerts"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_uuid)
+    kind: Mapped[str] = mapped_column(String(24), index=True)  # anpr|rash_driving|pedestrian|school_zone
+    plate: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    plate_confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    vehicle_type: Mapped[str] = mapped_column(String(32), default="")
+    lat: Mapped[float] = mapped_column(Float, index=True)
+    lon: Mapped[float] = mapped_column(Float, index=True)
+    city: Mapped[str] = mapped_column(String(32), index=True)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
