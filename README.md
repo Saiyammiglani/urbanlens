@@ -1,6 +1,6 @@
 # 🚌 UrbanLens — AI-Powered Mobile Urban Intelligence Platform
 
-**SIH26124 | Bharat Electronics Limited | Smart Automation**
+**Smart Automation · Edge AI + Cloud Platform**
 
 Public transport buses become mobile sensing platforms: edge AI on the bus detects
 road defects, counts traffic, reads number plates and flags rash driving — geo-tagged
@@ -124,6 +124,18 @@ OD patterns ✅ · route delays ✅ · edge processing (bandwidth-minimal) ✅ �
 missing road dividers/zebra crossings 🔶 (extension classes) · school-zone
 pedestrian alerts 🔶 (geofence rule on live person counts).
 
+## Documentation
+
+Professional documentation set (PDF, repository root):
+
+| Document | Contents |
+|---|---|
+| `UrbanLens_System_Overview.pdf` | complete system analysis: capabilities, architecture, verified results |
+| `UrbanLens_Technical_Architecture.pdf` | layered architecture, tech-stack rationale, measured performance graphs |
+| `UrbanLens_PRD.pdf` | goals, personas, MoSCoW scope, functional & non-functional requirements |
+| `UrbanLens_Executive_Brief.pdf` | stakeholder summary, KPIs, economics, Q&A positions |
+| `UrbanLens_Business_Analysis.pdf` | market sizing, unit economics, TCO, business model, go-to-market |
+
 ## License
 
-For SIH hackathon use.
+© 2026 UrbanLens. All rights reserved.
