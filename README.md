@@ -3,107 +3,126 @@
 **SIH26124 | Bharat Electronics Limited | Smart Automation**
 
 Public transport buses become mobile sensing platforms: edge AI on the bus detects
-urban issues (potholes, garbage, illegal parking, waterlogging...), geo-tags them,
-and pushes lightweight incident metadata to a cloud backend where a dashboard,
-dedup engine, severity scoring, and departmental workflow turn raw detections into
-actionable urban intelligence.
+road defects, counts traffic, reads number plates and flags rash driving — geo-tagged
+and streamed to a cloud backend where dedup, severity scoring, realtime websockets
+and a multi-city GIS dashboard turn raw detections into actionable urban intelligence.
 
-> **Real model required.** The edge agent runs only the exported ONNX model
-> (YOLOv8) — it refuses to start without weights, so every detection on the
-> dashboard comes from real inference, never synthetic data.
+> **Real model required.** The edge agent runs only exported ONNX models and refuses
+> to start without weights — every event on the dashboard comes from real inference.
+> All simulated/seeded data was purged; the live system contains only real events.
 
 ---
+
+## Verified Results (measured, not claimed)
+
+| Capability | Model / method | Result |
+|---|---|---|
+| Road defects (9 classes) | Custom YOLOv8 v3 → ONNX | mAP50 0.669 · open_manhole 0.971 |
+| Vehicle/pedestrian counting | YOLOv8 COCO → ONNX | 19/19 vehicles = ground truth on demo route |
+| Number-plate detection | YOLOv8 trained on 2,083 Indian plates | mAP50 0.993 · P 0.984 · R 0.987 |
+| ANPR read confidence | RapidOCR + 3-frame majority voting | 93–96% on real plates |
+| Rash-driving flags | IoU tracking + rule heuristics | 3/3 unit scenarios |
+| Detection → dashboard latency | websockets + polling fallback | 1–3 s (target < 5 s) |
+| Burst upload reliability | Supabase tx pooler + NullPool | 40/40 POSTs |
+| Dashboard UI checks | Puppeteer suite | 83/83 green |
+| External API cost | all free tiers | ₹0 |
 
 ## Repository Layout
 
 ```
 .
 ├── edge/                 # On-bus edge agent (Python)
-│   ├── main.py           # Edge agent entrypoint
-│   ├── camera.py         # Camera / recorded-video source abstraction
-│   ├── gps.py            # GPS reader (serial NMEA) + route replay
-│   ├── detector.py       # ONNX inference (real model, no fallback)
-│   ├── privacy.py        # On-device anonymization (blur)
-│   ├── buffer.py         # Offline store-and-forward queue
-│   ├── uploader.py       # MQTT / HTTPS publisher with retry
-│   └── replay_route.py   # Simulate a bus driving a route
-├── backend/              # FastAPI cloud backend
-│   ├── app/
-│   │   ├── main.py       # App factory + routes
-│   │   ├── models.py     # SQLAlchemy ORM (incidents, updates, vehicles)
-│   │   ├── schemas.py    # Pydantic contracts
-│   │   ├── ingest.py     # POST /api/v1/ingest
-│   │   ├── dedup.py      # Geo+time deduplication engine
-│   │   ├── severity.py   # Severity scoring
-│   │   ├── incidents.py  # CRUD + workflow state machine
-│   │   └── auth.py       # Token auth (demo)
-│   ├── mqtt_worker.py    # MQTT consumer → ingest pipeline
-│   └── init.sql          # PostGIS bootstrap
+│   ├── main.py           # Entrypoint — runs all 3 models (~1.6s/frame CPU)
+│   ├── camera.py         # Webcam / MJPEG / recorded-video source
+│   ├── gps.py            # Serial NMEA GPS + route replay (JSON)
+│   ├── detector.py       # Defect detection ONNX (9 classes, v3)
+│   ├── traffic_counter.py# Vehicle/pedestrian counting → congestion index
+│   ├── anpr.py           # Plate detection + RapidOCR + multi-frame voting
+│   ├── rash_detector.py  # IoU tracking → speeding/lane-weaving alerts
+│   ├── privacy.py        # On-device blur (faces/bystanders)
+│   ├── buffer.py         # Offline store-and-forward spool
+│   ├── uploader.py       # HTTPS batch upload (retry) / MQTT
+│   └── routes/           # Route replays (Delhi, Mumbai, Bengaluru)
+├── backend/              # FastAPI backend (Supabase Postgres or SQLite)
+│   └── app/
+│       ├── ingest.py     # POST /api/v1/ingest (dedup + severity at source)
+│       ├── incidents.py  # CRUD + workflow (new→confirmed→assigned→resolved)
+│       ├── traffic.py    # Segments, bottlenecks, OD, delays, ANPR alerts
+│       ├── live.py       # Realtime websocket fan-out
+│       ├── weather.py    # Open-Meteo (free)
+│       ├── aqi.py        # OpenAQ (free)
+│       └── routing.py    # Smart routing (avoid defects/congestion)
 ├── dashboard/            # Vite + React + Leaflet control room
-├── ml/                   # Training/export scaffolding (NOT run now)
-├── scripts/
-│   ├── simulate_fleet.py # Spin up N virtual buses
-│   └── demo.sh           # One-shot end-to-end demo
-└── docker-compose.yml    # Postgres (PostGIS) + Mosquitto + backend
+│   └── src/components/   # Live Map, Incidents, Traffic, Analytics,
+│                         # Media, Live Cam, FleetStrip, SmartRoute
+├── ml/                   # Training pipelines (v1→v3 defect, plate detector)
+│   ├── train_v3.py       # Defect model v3 (mAP50 0.669)
+│   ├── prepare_plate.py / train_plate.py  # Plate detector (mAP50 0.993)
+│   └── export_onnx.py    # PT → ONNX export
+└── scripts/              # start_backend.bat / start_demo.ps1 / run_edge.bat
 ```
+
+## Edge Models (edge/models/)
+
+| File | Purpose | Source |
+|---|---|---|
+| `model.onnx` | 9-class road-defect detection | trained v3 (ml/train_v3.py) |
+| `coco.onnx` | vehicle/pedestrian counting | YOLOv8n COCO export |
+| `plate.onnx` | license-plate detection | trained (ml/train_plate.py) |
 
 ## Quickstart
 
-### Option A — Docker (recommended)
 ```bash
-cp .env.example .env
-docker compose up --build
-# dashboard dev server separately (see dashboard/README.md)
-```
+cp .env.example .env        # fill DATABASE_URL (Supabase tx pooler :6543), API_TOKEN
 
-### Option B — Local, zero external services (SQLite, no MQTT)
-```bash
 # 1. Backend
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+scripts/start_backend.bat   # or: uvicorn app.main:app --port 8000
 
-# 2. Simulate 3 buses driving routes, pushing detections
-cd ../scripts
-pip install -r requirements.txt
-python simulate_fleet.py --buses 3
+# 2. Dashboard
+cd dashboard && npm install && npm run dev   # http://127.0.0.1:5173
 
-# 3. Dashboard
-cd ../dashboard
-npm install && npm run dev
+# 3. Edge agent (real video + route replay)
+scripts/run_edge.bat        # → edge/main.py --vehicle DL01CJ8943 --type bus \
+                            #    --video media/route_demo.mp4 --route routes/route_01.json
 ```
 
-Open http://localhost:5173 — live map, incident feed, heatpoints, workflow.
-
-### One-shot demo
-```bash
-bash scripts/demo.sh
-```
+Public demo URLs via Cloudflare quick tunnels (see `scripts/`).
 
 ## Data Flow
 
 ```
-Camera ─► [Edge Agent: detect → blur PII → geo-tag] ─► local buffer
-              │ (ONNX YOLOv8 model — required, no fallback)
+Camera ─► [Edge: 3× ONNX detect → OCR → vote → blur PII → geo-tag]
+              │  raw video never leaves the bus
               ▼
-      MQTT (Mosquitto) or HTTPS POST /api/v1/ingest
+      HTTPS POST /api/v1/* (batch, retry, offline spool)
               ▼
-      [Backend: dedup (haversine/H3) → severity score → persist]
+      [Backend: dedup (geo+time) → severity → nearest-city → persist]
               ▼
-      [Dashboard: map, heatpoints, feed, assign/resolve workflow]
+      [Postgres/Supabase] ──realtime──► [Dashboard: map, congestion heat,
+                                          alerts, analytics, workflow]
 ```
 
 ## Privacy Model
 
-- Raw video **never leaves the bus**. Only cropped stills + JSON metadata per incident.
-- Faces/plates blurred on-device before any clip is stored (`edge/privacy.py`).
-- No biometric data collected or stored anywhere.
+- Raw video **never leaves the bus** — only detections + small blurred crops.
+- Faces/bystanders blurred on-device (`edge/privacy.py`).
+- ANPR alerts store plate text + confidence + GPS only; no face imagery retained.
+- Browser uses anon key only; server credentials never ship to the client.
 
-## ML Pipeline (scaffolded, not executed)
+## ML Pipeline
 
-See `ml/README.md` for the trained v2 model (9 classes, mAP50 0.665). Export
-with `ml/export_onnx.py` and drop `model.onnx` at `edge/models/` — the edge
-agent runs real inference only and errors out if the model is missing.
+See `ml/README.md`. Defect model iterated v1 (0.580) → v3 (0.669) on public
+datasets; plate detector trained on 2,083 Indian plate images. Export with
+`ml/export_onnx.py`, drop into `edge/models/` — the agent runs real inference
+only and errors out if a model is missing.
+
+## Problem-Statement Coverage
+
+Road defects ✅ · traffic density/bottlenecks ✅ · ANPR with confidence/timestamp/
+GPS ✅ · rash-driving alerts ✅ · GIS dashboards ✅ · congestion heat maps ✅ ·
+OD patterns ✅ · route delays ✅ · edge processing (bandwidth-minimal) ✅ ·
+missing road dividers/zebra crossings 🔶 (extension classes) · school-zone
+pedestrian alerts 🔶 (geofence rule on live person counts).
 
 ## License
 
