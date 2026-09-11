@@ -1,7 +1,9 @@
 """Ingestion endpoint: observations -> dedup -> severity -> persist."""
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends
+
+from .auth import require_token
 from sqlalchemy.orm import Session
 
 from . import severity
@@ -79,16 +81,11 @@ def process_observation(db: Session, obs: ObservationIn) -> bool:
     return True
 
 
-@router.post("", response_model=IngestResult)
+@router.post("", response_model=IngestResult, dependencies=[Depends(require_token)])
 def ingest(
     payload: IngestIn,
     db: Session = Depends(get_db),
-    x_api_token: str = Header(default=""),
 ) -> IngestResult:
-    from .config import settings
-    if x_api_token != settings.API_TOKEN:
-        raise HTTPException(status_code=401, detail="invalid token")
-
     new_incidents = 0
     for obs in payload.observations:
         if process_observation(db, obs):

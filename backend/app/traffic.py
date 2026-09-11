@@ -11,10 +11,12 @@ Endpoints:
 from datetime import datetime, timezone
 import json
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
+
+from .auth import require_token
 
 from .database import get_db, init_db
 from .models import TrafficAlert, TrafficSegment
@@ -49,13 +51,9 @@ def _nearest_city(lat: float, lon: float) -> str:
                + (CITY_CENTERS[c][1] - lon) ** 2)
 
 
-@router.post("/ingest")
+@router.post("/ingest", dependencies=[Depends(require_token)])
 def ingest_segment(payload: TrafficSegmentIn,
-                   db: Session = Depends(get_db),
-                   x_api_token: str = Header(default="")):
-    from .config import settings
-    if x_api_token != settings.API_TOKEN:
-        raise HTTPException(status_code=401, detail="invalid token")
+                   db: Session = Depends(get_db)):
     seg = TrafficSegment(
         city=_nearest_city(payload.lat, payload.lon),
         route=payload.route,
@@ -84,13 +82,9 @@ class AlertIn(BaseModel):
     notes: str | None = None
 
 
-@router.post("/anpr")
+@router.post("/anpr", dependencies=[Depends(require_token)])
 def ingest_alert(payload: AlertIn,
-                 db: Session = Depends(get_db),
-                 x_api_token: str = Header(default="")):
-    from .config import settings
-    if x_api_token != settings.API_TOKEN:
-        raise HTTPException(status_code=401, detail="invalid token")
+                 db: Session = Depends(get_db)):
     if payload.lat is not None and payload.lon is not None:
         city = _nearest_city(payload.lat, payload.lon)
     else:

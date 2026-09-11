@@ -49,6 +49,7 @@ class ProcessIn(BaseModel):
 
 @router.post("/{filename}/process")
 def process(filename: str, payload: ProcessIn):
+    filename = Path(filename).name          # block path traversal (../)
     video = MEDIA_DIR / filename
     if not video.exists():
         raise HTTPException(404, "upload not found")

@@ -81,7 +81,7 @@ class FleetOut(BaseModel):
     fleet: list[VehicleOut]
 
 
-class IncidentOut(BaseModel):
+class IncidentBase(BaseModel):
     id: str
     label: str
     lat: float
@@ -92,7 +92,7 @@ class IncidentOut(BaseModel):
     confidence: float
     observation_count: int
     assigned_dept: str | None
-    image_b64: str | None
+    has_image: bool = False       # evidence exists -> fetch via /image endpoint
     created_at: datetime
     updated_at: datetime
 
@@ -104,6 +104,18 @@ class IncidentOut(BaseModel):
         # SQLite returns naive UTC datetimes; browsers parse those as LOCAL
         # time. Always mark them as UTC so client timestamps stay correct.
         return dt.isoformat() + ("" if dt.tzinfo else "Z")
+
+
+class IncidentOut(IncidentBase):
+    # full detail — includes the base64 evidence payload (single incident)
+    image_b64: str | None = None
+
+
+class IncidentListOut(IncidentBase):
+    """List view — deliberately NO image_b64 field: the dashboard polls this
+    every few seconds, and shipping ~15 KB of base64 per row multiplied
+    into GBs of shared-pooler egress. Images are fetched on demand from
+    GET /api/v1/incidents/{id}/image instead."""
 
 
 class IncidentUpdateOut(BaseModel):
