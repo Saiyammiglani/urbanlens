@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import EvidenceImage from "./EvidenceImage";
 import {
   labelColor,
   labelIcon,
@@ -135,13 +136,9 @@ export default function IncidentDetail({ incident, onClose, onAct }) {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
             Evidence Capture
           </div>
-          {incident.image_b64 ? (
+          {incident.has_image || incident.image_b64 ? (
             <div className={`ev-img-wrap ${imgExpanded ? "expanded" : ""}`} onClick={() => setImgExpanded(!imgExpanded)}>
-              <img
-                className="ev-img"
-                src={`data:image/jpeg;base64,${incident.image_b64}`}
-                alt="AI detection evidence"
-              />
+              <EvidenceImage id={incident.id} className="ev-img" />
               <div className="ev-img-overlay">
                 <div className="ev-img-conf" style={{ background: `${c}cc` }}>
                   {prettyLabel(incident.label)} · {Math.round(incident.confidence * 100)}%

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, Tooltip, ZoomControl, useMap } from "react-leaflet";
 import { BASE } from "../lib/api.js";
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM } from "../lib/tiles.js";
 
 const CITIES = {
   Delhi: [28.6139, 77.2295],
@@ -83,9 +84,9 @@ export default function TrafficView({ city }) {
       <div className="traffic-map-wrap">
         <MapContainer center={CITIES[city]} zoom={12} className="traffic-map" zoomControl={false}>
           <TileLayer
-            attribution="&copy; OpenStreetMap &copy; CARTO"
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_2z8p_1_b9474e4f226b08a01198d7b1"
-            maxZoom={19}
+            attribution={TILE_ATTRIBUTION}
+            url={TILE_URL}
+            maxZoom={TILE_MAX_ZOOM}
           />
           <ZoomControl position="bottomright" />
           <MapRecenter center={CITIES[city]} />

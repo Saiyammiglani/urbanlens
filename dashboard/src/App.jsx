@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Marker, ZoomControl, useMap } from "react-leaflet";
 import L from "leaflet";
 import { fetchIncidents, fetchStats, fetchZones, transition } from "./lib/api.js";
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM } from "./lib/tiles.js";
 import { realtimeAvailable, subscribeRealtime } from "./lib/realtime.js";
 import {
   LABEL_META,
@@ -12,6 +13,7 @@ import {
 } from "./lib/labels.js";
 import IncidentFeed from "./components/IncidentFeed.jsx";
 import IncidentDetail from "./components/IncidentDetail.jsx";
+import EvidenceImage from "./components/EvidenceImage.jsx";
 import SmartRoute from "./components/SmartRoute.jsx";
 import StatsBar from "./components/StatsBar.jsx";
 import Uploads from "./components/Uploads.jsx";
@@ -190,7 +192,10 @@ export default function App() {
 
   useEffect(() => {
     refresh();
-    const id = setInterval(refresh, 4000);
+    // fallback poll only — Supabase Realtime triggers refresh instantly on
+    // new rows, so this just backstops dropped websockets (and keeps shared-
+    // pooler egress low: list responses no longer carry base64 evidence)
+    const id = setInterval(refresh, 15000);
     return () => clearInterval(id);
   }, [statusFilter, labelFilter, minSeverity]);
 
@@ -257,9 +262,9 @@ export default function App() {
   const mapLayers = (
     <>
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_2z8p_1_b9474e4f226b08a01198d7b1"
-        maxZoom={19}
+        attribution={TILE_ATTRIBUTION}
+        url={TILE_URL}
+        maxZoom={TILE_MAX_ZOOM}
       />
       <ZoomControl position="bottomright" />
       {incidents.map((inc) => {
@@ -290,10 +295,10 @@ export default function App() {
               <br />severity {inc.severity}/10 · confidence {(inc.confidence * 100).toFixed(0)}%
               <br />status: {prettyLabel(inc.status)}
               <br />seen {inc.observation_count}× · {inc.assigned_dept || "unassigned"}
-              {inc.image_b64 && (
+              {(inc.has_image || inc.image_b64) && (
                 <>
                   <br />
-                  <img src={`data:image/jpeg;base64,${inc.image_b64}`} width="200" style={{ borderRadius: 6, marginTop: 6 }} alt="evidence" />
+                  <EvidenceImage id={inc.id} hasImage width="200" />
                 </>
               )}
             </Popup>
