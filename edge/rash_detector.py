@@ -141,9 +141,14 @@ class RashDetector:
             del self.tracks[t]
         return None
 
-    def upload(self, fix: dict, evidence: dict, plate: str | None = None,
+    def upload(self, fix, evidence: dict, plate: str | None = None,
                plate_conf: float | None = None):
+        import threading
         import requests
+        # accept both a Fix dataclass (agent loop) and a plain dict
+        if not isinstance(fix, dict):
+            fix = {"lat": getattr(fix, "lat", None),
+                   "lon": getattr(fix, "lon", None)}
         payload = {
             "kind": "rash_driving",
             "plate": plate, "plate_confidence": plate_conf,
@@ -151,12 +156,20 @@ class RashDetector:
             "lat": fix.get("lat"), "lon": fix.get("lon"),
             "notes": "; ".join(evidence.get("reasons", [])),
         }
-        try:
-            r = requests.post(self.url, json=payload, headers=self.headers,
-                              timeout=12)
-            if r.status_code == 200:
-                log.info("rash-driving alert uploaded")
-            else:
-                log.warning("rash upload %s: %s", r.status_code, r.text[:120])
-        except requests.RequestException as exc:
-            log.warning("rash upload error: %s", exc)
+
+        # fire-and-forget: the POST takes 1-2s (Supabase pooler hop) and
+        # alert rate is capped by the 300 s cooldown, so a handful of
+        # concurrent daemon threads is safe. Same payload, same endpoint —
+        # only the detection loop stops waiting on the network.
+        def _post():
+            try:
+                r = requests.post(self.url, json=payload, headers=self.headers,
+                                  timeout=12)
+                if r.status_code == 200:
+                    log.info("rash-driving alert uploaded")
+                else:
+                    log.warning("rash upload %s: %s", r.status_code, r.text[:120])
+            except requests.RequestException as exc:
+                log.warning("rash upload error: %s", exc)
+
+        threading.Thread(target=_post, daemon=True).start()

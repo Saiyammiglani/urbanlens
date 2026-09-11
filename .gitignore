@@ -41,3 +41,7 @@ dashboard/.env
 ml/anpr_data/
 ml/dataset_anpr/
 ml/traffic_segments.json
+
+# Office lock files
+~$*.pdf
+~$*.pptx

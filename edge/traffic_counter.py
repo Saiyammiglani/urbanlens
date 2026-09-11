@@ -44,6 +44,7 @@ class TrafficCounter:
         self.route = route
         self._n = 0
         self.last_vehicles = []   # [(x1,y1,x2,y2,label)] for RashDetector
+        self.last_persons = []     # [(x1,y1,x2,y2)] for privacy blur
         self._reset()
 
     def _reset(self):
@@ -61,13 +62,16 @@ class TrafficCounter:
             return
         self._frames += 1
         veh_boxes = []
+        person_boxes = []
         for det in self.det.detect(frame):
             if det.label in VEHICLE_CLASSES:
                 self._counts[det.label] = self._counts.get(det.label, 0) + 1
                 veh_boxes.append((*det.bbox, det.label))
             elif det.label == PERSON_CLASS:
                 self._persons += 1
+                person_boxes.append(det.bbox)
         self.last_vehicles = veh_boxes
+        self.last_persons = person_boxes
         if time.time() - self._t0 >= WINDOW_S:
             self.flush()
 

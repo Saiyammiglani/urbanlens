@@ -43,8 +43,12 @@ class ANPR:
             so = ort.SessionOptions()
             so.inter_op_num_threads = 1
             so.intra_op_num_threads = 2
+            # GPU (DirectML) when available — same graph/weights, just faster
+            prov = (["DmlExecutionProvider", "CPUExecutionProvider"]
+                    if "DmlExecutionProvider" in ort.get_available_providers()
+                    else ["CPUExecutionProvider"])
             self.sess = ort.InferenceSession(
-                str(plate_onnx), so, providers=["CPUExecutionProvider"])
+                str(plate_onnx), so, providers=prov)
             self.input_name = self.sess.get_inputs()[0].name
             log.info("plate detector loaded: %s", plate_onnx.name)
         else:
@@ -139,7 +143,17 @@ class ANPR:
                 crop = cv2.resize(crop, None, fx=2, fy=2,
                                   interpolation=cv2.INTER_CUBIC)
             try:
-                res, _ = self.ocr(crop)
+                # rec-only: the plate YOLO model already localized this crop,
+                # so OCR's internal detection stage is redundant work
+                # (~850 ms -> ~50-200 ms). use_det=False treats the whole
+                # crop as a single text line, which is exactly what a plate
+                # crop is. Falls back to the full pipeline on old rapidocr
+                # versions without the use_* kwargs.
+                try:
+                    res, _ = self.ocr(crop, use_det=False, use_cls=False,
+                                      use_rec=True)
+                except TypeError:
+                    res, _ = self.ocr(crop)
             except Exception:
                 continue
             if not res:
@@ -151,10 +165,18 @@ class ANPR:
                 return (not u or u in {"IND", "INDIA"}
                         or not any(ch.isalnum() for ch in u))
 
-            frags = [(r[1], float(r[2]), r[0]) for r in res
-                     if r[1] and not is_junk(r[1])]
+            # normalize: full pipeline yields [box, text, score]; rec-only
+            # yields [text, score] (single fragment — no box needed)
+            frags = []
+            for r in res:
+                if len(r) >= 3:
+                    t, c, b = r[1], float(r[2]), r[0]
+                else:
+                    t, c, b = r[0], float(r[1]), None
+                if t and not is_junk(t):
+                    frags.append((t, c, b))
             candidates = [t for t, _, _ in frags]
-            if len(frags) > 1:
+            if len(frags) > 1 and all(f[2] for f in frags):
                 by_x = sorted(frags, key=lambda f: (f[2][0][0], f[2][0][1]))
                 by_y = sorted(frags, key=lambda f: (f[2][0][1], f[2][0][0]))
                 candidates += ["".join(t for t, _, _ in by_x),

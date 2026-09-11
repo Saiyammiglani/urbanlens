@@ -1,9 +1,10 @@
-"""On-device privacy: blur faces/plates/people BEFORE anything is stored or sent.
+"""On-device privacy: pixelate faces/plates/people BEFORE anything is stored or sent.
 
-In production this runs a lightweight person/plate detector; for the demo we
-provide a deterministic region-blur utility so raw pixels never leave the bus
-unprocessed.
+Used on every evidence crop: pedestrian detections from the COCO model are
+irreversibly pixelated inside the crop, so bystanders never leave the device
+identifiable. Raw video never leaves the bus at all.
 """
+import cv2
 import numpy as np
 
 
@@ -17,18 +18,25 @@ def blur_regions(frame: np.ndarray, regions: list[tuple]) -> np.ndarray:
         if x2 <= x1 or y2 <= y1:
             continue
         roi = out[y1:y2, x1:x2]
-        # pixelate then gaussian-ish blur — cheap and irreversible
-        small = roi[:: max(1, roi.shape[0] // 8), :: max(1, roi.shape[1] // 8)]
-        out[y1:y2, x1:x2] = np.kron(small, np.ones((8, 8, 1), dtype=np.uint8))[
-            : y2 - y1, : x2 - x1
-        ]
+        # pixelate: downscale to ~8px cells then upscale back — cheap and irreversible
+        rh, rw = roi.shape[:2]
+        if rh < 2 or rw < 2:
+            continue
+        small = cv2.resize(roi, (max(1, rw // 8), max(1, rh // 8)),
+                           interpolation=cv2.INTER_LINEAR)
+        out[y1:y2, x1:x2] = cv2.resize(small, (rw, rh), interpolation=cv2.INTER_NEAREST)
     return out
 
 
 def crop_evidence(frame: np.ndarray, bbox: tuple, pad: int = 32,
-                  label: str | None = None, confidence: float | None = None) -> str | None:
+                  label: str | None = None, confidence: float | None = None,
+                  blur_boxes: list[tuple] | None = None) -> str | None:
     """Return a base64 JPEG evidence crop (small, privacy-filtered) with the
-    detected issue highlighted by a red circle/ellipse. None if empty."""
+    detected issue highlighted by a red circle/ellipse. None if empty.
+
+    blur_boxes: frame-coordinate boxes (e.g. pedestrian detections) that are
+    irreversibly pixelated inside the crop before encoding — bystanders never
+    leave the device identifiable."""
     import base64
     import cv2
     h, w = frame.shape[:2]
@@ -39,6 +47,22 @@ def crop_evidence(frame: np.ndarray, bbox: tuple, pad: int = 32,
     crop = frame[y1:y2, x1:x2].copy()
     if crop.size == 0:
         return None
+
+    # --- privacy: pixelate bystanders (person boxes) inside the crop ---
+    if blur_boxes:
+        ch, cw = crop.shape[:2]
+        regions = []
+        for (px1, py1, px2, py2) in blur_boxes:
+            # expand a little — faces/bodies at box edges stay covered
+            ex = int((px2 - px1) * 0.15) + 6
+            ey = int((py2 - py1) * 0.15) + 6
+            rx1, ry1 = int(px1 - ex) - x1, int(py1 - ey) - y1   # → crop coords
+            rx2, ry2 = int(px2 + ex) - x1, int(py2 + ey) - y1
+            rx1, ry1 = max(0, rx1), max(0, ry1)
+            rx2, ry2 = min(cw, rx2), min(ch, ry2)
+            if rx2 > rx1 and ry2 > ry1:
+                regions.append((rx1, ry1, rx2, ry2))
+        crop = blur_regions(crop, regions)
 
     # --- highlight the detection with a red circle (ellipse around bbox) ---
     # bbox position inside the crop

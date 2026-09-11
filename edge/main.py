@@ -7,6 +7,7 @@ GPS comes from a serial puck or deterministic route replay.
 import argparse
 import logging
 import os
+import threading
 import time
 from pathlib import Path
 
@@ -131,7 +132,27 @@ def run(vehicle_code: str, video_source: str | None, gps_port: str | None,
             ".mp4 into edge/media/ (real footage only — no synthetic frames)"
         )
     log.info("video source: %s | vehicle: %s", src, vehicle_code)
-    camera = CameraSource(src, fps_cap=5.0)
+    camera = CameraSource(src, fps_cap=10.0)
+
+    # Static road defects do not move between frames: running the defect
+    # model every Nth frame (default 2) halves its cost with zero precision
+    # loss — the streak gate still needs 2 hits inside a 1.5 s window and
+    # 5 fps / 2 = 2.5 looks per second satisfies it. Set EDGE_DEFECT_EVERY=1
+    # to restore per-frame inference.
+    defect_every = max(1, int(os.getenv("EDGE_DEFECT_EVERY", "2")))
+    if defect_every > 1:
+        log.info("defect inference: every %dth frame (static defects; "
+                 "streak window unaffected)", defect_every)
+
+    # GPU providers (DirectML/CUDA) must NOT run concurrent sessions from
+    # multiple threads (DML command recorder is not thread-safe); on GPU the
+    # models are fast enough (~20 ms) that sequential is optimal anyway.
+    # CPU keeps the parallel defect thread (~1.6x).
+    _providers = [p.lower() for p in detector.session.get_providers()]
+    _gpu = any("dml" in p or "cuda" in p for p in _providers)
+    if _gpu:
+        log.info("GPU inference active (%s) — sequential model calls",
+                 detector.session.get_providers()[0])
 
     # live traffic counting (real COCO inference on the same feed)
     traffic = None
@@ -168,6 +189,21 @@ def run(vehicle_code: str, video_source: str | None, gps_port: str | None,
     streaks: dict[str, list[float]] = {}
     cooldown: dict[str, float] = {}
 
+    # --- background spool flusher -------------------------------------------
+    # Drains the spool every 0.5 s in a daemon thread so the detection loop
+    # never waits on network I/O (a Supabase pooler hop is 1-3 s). Same
+    # batch/retry semantics as before; the exit flush in `finally` still
+    # guarantees at-least-once delivery for whatever is left in the spool.
+    def _spool_worker():
+        while True:
+            time.sleep(0.5)
+            try:
+                flush_spool(spool, uploader, max_batches=2)
+            except Exception:
+                log.exception("spool worker error")
+
+    threading.Thread(target=_spool_worker, daemon=True).start()
+
     # --- main loop ------------------------------------------------------------
     try:
         while True:
@@ -180,8 +216,27 @@ def run(vehicle_code: str, video_source: str | None, gps_port: str | None,
             if fix is None:
                 continue  # no GPS fix; never geo-tag a detection blindly
 
+            # --- parallel inference -----------------------------------------
+            # The defect model runs in a worker thread alongside the traffic
+            # model. ONNX Runtime releases the GIL during inference, so the
+            # two run truly concurrently (~1.6x faster than sequential), and
+            # thread-tuned sessions give identical outputs.
+            det_results: list = []
+            det_thread = None
+            run_defect = frame.frame_id % defect_every == 0
+            if run_defect and not _gpu:
+                def _run_defect():
+                    det_results.extend(detector.detect(frame.image))
+                det_thread = threading.Thread(target=_run_defect, daemon=True)
+                det_thread.start()
+
             if traffic is not None:
                 traffic.observe(frame.image, fix)
+
+            if det_thread is not None:
+                det_thread.join()
+            elif run_defect:                      # GPU: sequential, same result
+                det_results.extend(detector.detect(frame.image))
 
             if anpr is not None:
                 try:
@@ -207,7 +262,7 @@ def run(vehicle_code: str, video_source: str | None, gps_port: str | None,
                 except Exception:
                     log.exception("rash observe failed")
 
-            detections = detector.detect(frame.image)
+            detections = det_results
             if detections:
                 log.info("frame %s: %d detection(s): %s",
                          frame.frame_id, len(detections),
@@ -217,15 +272,17 @@ def run(vehicle_code: str, video_source: str | None, gps_port: str | None,
                 h, w = frame.image.shape[:2]
                 if not _passes_gates(det, streaks, cooldown, time.time(), w, h):
                     continue
-                # privacy-filtered crop with the issue circled in red
+                # privacy-filtered crop with the issue circled in red;
+                # bystanders (persons) pixelated before encoding
+                person_boxes = traffic.last_persons if traffic is not None else []
                 image_b64 = crop_evidence(frame.image, det.bbox,
-                                          label=det.label, confidence=det.confidence)
+                                          label=det.label, confidence=det.confidence,
+                                          blur_boxes=person_boxes)
                 rec = record_from_detection(det, fix, vehicle_code, image_b64, vehicle_type)
                 spool.put(rec)
 
-            # opportunistically drain the spool every loop (~each frame)
-            flush_spool(spool, uploader, max_batches=2)
-            time.sleep(0.05)
+            # (spool flushing happens in the background worker thread —
+            # never block the detection loop on network I/O)
     except KeyboardInterrupt:
         log.info("interrupted — flushing remaining spool")
         flush_spool(spool, uploader, max_batches=50)

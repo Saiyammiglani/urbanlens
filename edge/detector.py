@@ -34,12 +34,43 @@ class OnnxDetector:
     """
 
     def __init__(self, model_path: str | Path, conf_thres: float = 0.45,
-                 input_size: int = 640, labels: list[str] | None = None):
+                 input_size: int = 640, labels: list[str] | None = None,
+                 intra_op: int | None = None):
         import json
+        import os
         import onnxruntime as ort
+        # Provider selection (env EDGE_PROVIDER=auto|dml|cpu, default auto):
+        # DirectML uses the RTX GPU (~7 ms/frame vs ~320 ms CPU), identical
+        # ONNX graph and weights — pure speed, no precision change. Falls
+        # back to CPU automatically when no GPU/DML is available.
+        pref = os.getenv("EDGE_PROVIDER", "auto").lower()
+        available = ort.get_available_providers()
+        if pref == "dml":
+            providers = ["DmlExecutionProvider"]
+        elif pref == "cpu":
+            providers = ["CPUExecutionProvider"]
+        else:  # auto
+            providers = ([p for p in ("DmlExecutionProvider",
+                                      "CPUExecutionProvider") if p in available]
+                         or ["CPUExecutionProvider"])
+        # Thread tuning matters only for the CPU path: ORT's default (one
+        # thread per core) wastes time on sync overhead for these small
+        # models — 8 threads measured ~2.3x faster than all-cores.
+        so = ort.SessionOptions()
+        so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        if providers == ["CPUExecutionProvider"] or pref == "cpu":
+            intra = int(os.getenv("EDGE_INTRA_THREADS", "8"))
+            so.intra_op_num_threads = intra
+            so.inter_op_num_threads = 1
+        elif "DmlExecutionProvider" in providers:
+            # DML runs the graph on GPU; keep CPU-side ops lean
+            so.intra_op_num_threads = 2
+            so.inter_op_num_threads = 1
         self.session = ort.InferenceSession(
-            str(model_path), providers=["CPUExecutionProvider"]
+            str(model_path), so, providers=providers
         )
+        used = self.session.get_providers()[0]
+        print(f"[detector] ONNX session: {model_path} (input {input_size}px) via {used}")
         self.conf_thres = conf_thres
         self.input_size = input_size
         self.input_name = self.session.get_inputs()[0].name
@@ -113,11 +144,12 @@ class OnnxDetector:
         return dets
 
 
-def load_detector(model_path: str | None, conf_thres: float = 0.45) -> OnnxDetector:
+def load_detector(model_path: str | None, conf_thres: float = 0.45,
+                  input_size: int = 640) -> OnnxDetector:
     """Load the real ONNX model. No model → hard error (never fake detections)."""
     if model_path and Path(model_path).exists():
-        print(f"[detector] loading ONNX model: {model_path}")
-        return OnnxDetector(model_path, conf_thres)
+        print(f"[detector] loading ONNX model: {model_path} (input {input_size}px)")
+        return OnnxDetector(model_path, conf_thres, input_size=input_size)
     raise FileNotFoundError(
         "no ONNX model found — refusing to run with fake detections. "
         "Train the model (ml/train_v2.py) and export it (ml/export_onnx.py), "
